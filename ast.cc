@@ -74,7 +74,7 @@ string FOR_Ast::check_ast(){
     return "";
 }
 void FOR_Ast::print(int l){
-    if(debug) { cout<< "FOR_Ast print "<<endl; }
+    debug("FOR_Ast print ");
     cout<<this->get_index() << ":FOR ( " << this->iter_name << " = " << this->i_start << " ; "; 
     this->cond->print(l); cout << " ; "; this->Incre->print(l);
     cout << " ) "<<endl;
@@ -82,7 +82,7 @@ void FOR_Ast::print(int l){
     // this->body->print(l+1);
     space_print(l); cout<<" } "<<endl;
 
-    if(debug) { cout<< "FOR_Ast print ENDED"<<endl; }
+    debug("FOR_Ast print ENDED");
 }
 //----------------------------------------------------------------------------
 /****** ARR AST ************/
@@ -151,6 +151,18 @@ int Cond_Ast::get_value(){                      return this->value; }
 void Cond_Ast::set_Comp_ops(Comp_ops c){        this->op = c;   }
 Comp_ops Cond_Ast::get_Comp_ops(){              return this->op; }
 
+void Cond_Ast::negate(){
+    switch (this->op)
+    {
+    case 0: { this->op = gtq; break; }
+    case 1: { this->op = gt; break; }
+    case 2: { this->op = leq; break; }
+    case 3: { this->op = le; break; }
+    case 4: { this->op = neq; break; }
+    case 5: { this->op = eq; break; }
+    default: break;
+    }
+}
 void Cond_Ast::print(int l){
     cout<<" " <<this->var_name;
     switch (this->op)

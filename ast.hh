@@ -29,7 +29,9 @@ class Ast{
 	void set_index(int i);
 	virtual void print(int l);
 };
-
+// Differently Used as We need the values of the bounds of for loop rather than just abstract ast for the condition
+// as we are not interested in evaluating/ compile functions for these classes
+// This will bring a change in the symbol table interpretation as to store a variable 
 class FOR_Ast: public Ast{
 
 	int i_start,i_end; 			// Iteration Bounds
@@ -126,6 +128,7 @@ class Cond_Ast: public Ast {
 	void set_Comp_ops(Comp_ops c);
 	Comp_ops get_Comp_ops();
 
+	void negate();
 	void print(int l);
 };
 //-------------------------------------------------------------------------------------------

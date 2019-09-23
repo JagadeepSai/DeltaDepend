@@ -12,9 +12,11 @@
         exit ( EXIT_FAILURE );
     }
 
-    int global_index ;
+    int global_index ;  // For Scopes 
     int cur_index;
     queue<int > index_scope;
+    list<ARR_Ast*> Reads,Writes;
+    list<FOR_Ast*> Fors;
 
 %}
 %code requires {
@@ -31,20 +33,23 @@
     struct ARR_Ast*     ARR_AST;
     list <Ast*>*   ASTLIST;
     list<Symbol_Table_Entry*>* STE_LIST;
+
 }
 
 
 %token INTEGER ASSIGN_OP
-%token GTE LTE LT GT EQ NEQ
+%token GTE LTE LT GT EQ NEQ NOT
 %token FOR 
 %token <stringer>  NAME 
 %token <integer>   INTEGER_NUMBER 
 
-// %type <AST> STMT PROG FOR 
-// %type <COND_AST> COND
-// %type <INC_AST> INCRE
+%type <AST> STMT PROG FOR STMTs ARR_STMT
+%type <COND_AST> COND
+%type <INC_AST> INCRE
 %type <ARR_INDEX_EQ_AST> ARR_INDEX_EQ
-%type <ARR_AST> ARRAY ARRAY1 
+%type <ARR_AST> ARRAY ARRAY1 ARRSUM 
+
+
 // %type  <AST> ASSIGN_VALUE ARR_INDEX_EQ STMT ASSIGN_STMT COND FUNCCALL
 // %type  <ASTLIST> STMTs ARR_INDEX_EQLIST ARR_INDEX_EQLIST1
 // %type  <STE_LIST> VARDEC VARDEC1 PARAMSt PARAMS PARAMS1 DECLS VARDECS
@@ -59,30 +64,47 @@
 %start PROG
 
 %%
-PROG : ARRAY {
+PROG : ARR_STMT {
                 MAIN = $1;
             }
-// STMT : 
-//     FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' 
+STMT : 
+    '{' STMTs '}' { $$ = new Ast(); }
+    | FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' 
     
-//     {   string name = *$3;
-//         int i_start = $5, i_end = $7->get_value();
+    {   string name = *$3;
+        int i_start = $5, i_end = $7->get_value();
 
-//         FOR_Ast * forloop = new FOR_Ast();
-//         forloop->set_iter_name(name);
-//         forloop->set_i_start(i_start);
-//         forloop->set_i_end(i_end);
-//         forloop->set_Cond($7);
-//         forloop->set_Incre($9);
-//         string err = forloop->check_ast();
-//         if(err != "") { yyerror(err.c_str()); }
+        FOR_Ast * forloop = new FOR_Ast();      // Making the For Ast
+        forloop->set_iter_name(name);
+        forloop->set_i_start(i_start);
+        forloop->set_i_end(i_end);
+        forloop->set_Cond($7);
+        forloop->set_Incre($9);
+                                                
+        string err = forloop->check_ast();       // Checking the For Ast 
+        if(err != "") { yyerror(err.c_str()); }
+        // forloop->print(global_index); // Printing 
 
-//         // TODO: Change the increment Conditions
-//         forloop->set_ind_start(global_index);
-//         index_scope.push(global_index);
-//         global_index++;
-//         $$ = forloop;
-//     }
+        // TODO: Change the increment Conditions
+        forloop->set_ind_start(global_index);     
+        index_scope.push(global_index);
+        global_index++;
+
+        Fors.push_back(forloop); // Adding to the For list
+        
+        // $$ = new Ast();   //Hack
+    }  
+    STMT {
+                        global_index--;
+                        index_scope.pop();
+                    }
+    
+STMTs: 
+    STMTs STMT      {$$=$1;}
+    |               {$$=new Ast();}
+    ;
+
+// --------------------------------- Array ---------------------------------------------------------
 
 ARR_INDEX_EQ : 
      INTEGER_NUMBER '*' NAME { $$ = new ARR_EQ_Ast(*$3,$1);                   }
@@ -91,13 +113,13 @@ ARR_INDEX_EQ :
     | NAME                    { $$ = new ARR_EQ_Ast(*$1,1);                   }
     | INTEGER_NUMBER          { $$ = new ARR_EQ_Ast($1);                      }      
 
- 
+
 ARR_STMT : 
-    ARRAY '=' ARRSUM ';'
+    ARRAY '=' ARRSUM ';'    { Writes.push_back($1); $$= new Ast();}
 
 ARRSUM :
-    ARRAY + ARRSUM { }
-    | ARRAY { $1->set_isSource(False);  }
+    ARRAY '+' ARRSUM {  Reads.push_back($1); $$ = new ARR_Ast();}
+    | ARRAY { $1->set_isSource(false); Reads.push_back($1); $$ = new ARR_Ast(); }
     
 
 
@@ -129,27 +151,21 @@ ARRAY1 :
                     }
 
 
-
-
-
-
-// FOR_ASSIGN_STMT :
-//     NAME '=' ARR_INDEX_EQ
-
-// INCRE : 
-//     NAME '+''+'   { $$ = new Incre_Ast(*$1,true); }
-//     | NAME '-''-'   { $$ = new Incre_Ast(*$1,false); }
+// --------------------------------- For Loop ---------------------------------------------------------
+INCRE : 
+    NAME '+''+'   { $$ = new Incre_Ast(*$1,true); }
+    | NAME '-''-'   { $$ = new Incre_Ast(*$1,false); }
       
 
-// COND : 
-//     '(' COND ')'                    { $$ = $2; } 
-//     | NAME LT   INTEGER_NUMBER        { $$ = new Cond_Ast(le,*$1,$3); } 
-//     | NAME LTE  INTEGER_NUMBER        { $$ = new Cond_Ast(leq,*$1,$3); } 
-//     | NAME GT   INTEGER_NUMBER        { $$ = new Cond_Ast(gt,*$1,$3); } 
-//     | NAME GTE  INTEGER_NUMBER        { $$ = new Cond_Ast(gtq,*$1,$3); } 
-//     | NAME EQ   INTEGER_NUMBER        { $$ = new Cond_Ast(eq,*$1,$3); } 
-//     | NAME NEQ  INTEGER_NUMBER        { $$ = new Cond_Ast(neq,*$1,$3); } 
-//NOT COND                          { $$ = }
+COND : 
+    '(' COND ')'                    { $$ = $2; } 
+    | NAME LT   INTEGER_NUMBER        { $$ = new Cond_Ast(le,*$1,$3); } 
+    | NAME LTE  INTEGER_NUMBER        { $$ = new Cond_Ast(leq,*$1,$3); } 
+    | NAME GT   INTEGER_NUMBER        { $$ = new Cond_Ast(gt,*$1,$3); } 
+    | NAME GTE  INTEGER_NUMBER        { $$ = new Cond_Ast(gtq,*$1,$3); } 
+    | NAME EQ   INTEGER_NUMBER        { $$ = new Cond_Ast(eq,*$1,$3); } 
+    | NAME NEQ  INTEGER_NUMBER        { $$ = new Cond_Ast(neq,*$1,$3); } 
+    | NOT COND                        { $2->negate(); $$=$2; }
 
 
 // STMT:
@@ -162,11 +178,6 @@ ARRAY1 :
 //     ;
 
 
-// STMTs: // List of Statements
-//     STMTs STMT      {($1)->push_back($2); $$=$1;}
-//     |               {$$=new list<Ast*>();}
-//     ;
-
 
 %%
 
@@ -178,7 +189,7 @@ int main(int argc,char* argv[])
     int ret = yyparse();
     if(ret==0){
         printf("AST: ------------------------------------------ \n\n"); 
-        MAIN->print(0);
+        // MAIN->print(0);
         printf("\n");
     }
     else{

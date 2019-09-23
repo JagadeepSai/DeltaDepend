@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 20 "parser.y" /* yacc.c:1909  */
+#line 22 "parser.y" /* yacc.c:1909  */
 
     #include "headers.h"
 
@@ -59,9 +59,10 @@ extern int yydebug;
     GT = 263,
     EQ = 264,
     NEQ = 265,
-    FOR = 266,
-    NAME = 267,
-    INTEGER_NUMBER = 268
+    NOT = 266,
+    FOR = 267,
+    NAME = 268,
+    INTEGER_NUMBER = 269
   };
 #endif
 
@@ -70,7 +71,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 23 "parser.y" /* yacc.c:1909  */
+#line 25 "parser.y" /* yacc.c:1909  */
 
     string *    stringer;
     char        character;
@@ -83,7 +84,8 @@ union YYSTYPE
     list <Ast*>*   ASTLIST;
     list<Symbol_Table_Entry*>* STE_LIST;
 
-#line 87 "parser.tab.h" /* yacc.c:1909  */
+
+#line 89 "parser.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

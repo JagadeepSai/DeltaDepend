@@ -1,3 +1,12 @@
+Nonterminals useless in grammar
+
+   STMT
+   $@1
+   STMTs
+   INCRE
+   COND
+
+
 Terminals unused in grammar
 
    INTEGER
@@ -8,14 +17,43 @@ Terminals unused in grammar
    GT
    EQ
    NEQ
+   NOT
    FOR
+   '{'
+   '}'
+   '('
+   ')'
+
+
+Rules useless in grammar
+
+   13 STMT: '{' STMTs '}'
+
+   14 $@1: %empty
+
+   15 STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
+
+   16 STMTs: STMTs STMT
+   17      | %empty
+
+   18 INCRE: NAME '+' '+'
+   19      | NAME '-' '-'
+
+   20 COND: '(' COND ')'
+   21     | NAME LT INTEGER_NUMBER
+   22     | NAME LTE INTEGER_NUMBER
+   23     | NAME GT INTEGER_NUMBER
+   24     | NAME GTE INTEGER_NUMBER
+   25     | NAME EQ INTEGER_NUMBER
+   26     | NAME NEQ INTEGER_NUMBER
+   27     | NOT COND
 
 
 Grammar
 
     0 $accept: PROG $end
 
-    1 PROG: ARRAY
+    1 PROG: ARR_STMT
 
     2 ARR_INDEX_EQ: INTEGER_NUMBER '*' NAME
     3             | ARR_INDEX_EQ '+' ARR_INDEX_EQ
@@ -23,20 +61,31 @@ Grammar
     5             | NAME
     6             | INTEGER_NUMBER
 
-    7 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1
+    7 ARR_STMT: ARRAY '=' ARRSUM ';'
 
-    8 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1
-    9       | ']'
+    8 ARRSUM: ARRAY '+' ARRSUM
+    9       | ARRAY
+
+   10 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1
+
+   11 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1
+   12       | ']'
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
+'(' (40)
+')' (41)
 '*' (42) 2
-'+' (43) 3
+'+' (43) 3 8
 '-' (45) 4
-'[' (91) 7 8
-']' (93) 8 9
+';' (59) 7
+'=' (61) 7
+'[' (91) 10 11
+']' (93) 11 12
+'{' (123)
+'}' (125)
 error (256)
 INTEGER (258)
 ASSIGN_OP (259)
@@ -46,23 +95,28 @@ LT (262)
 GT (263)
 EQ (264)
 NEQ (265)
-FOR (266)
-NAME (267) 2 5 7
-INTEGER_NUMBER (268) 2 6
+NOT (266)
+FOR (267)
+NAME (268) 2 5 10
+INTEGER_NUMBER (269) 2 6
 
 
 Nonterminals, with rules where they appear
 
-$accept (19)
+$accept (26)
     on left: 0
-PROG (20)
+PROG (27)
     on left: 1, on right: 0
-ARR_INDEX_EQ (21)
-    on left: 2 3 4 5 6, on right: 3 4 7 8
-ARRAY (22)
+ARR_INDEX_EQ (28)
+    on left: 2 3 4 5 6, on right: 3 4 10 11
+ARR_STMT (29)
     on left: 7, on right: 1
-ARRAY1 (23)
+ARRSUM (30)
     on left: 8 9, on right: 7 8
+ARRAY (31)
+    on left: 10, on right: 7 8 9
+ARRAY1 (32)
+    on left: 11 12, on right: 10 11
 
 
 State 0
@@ -71,130 +125,182 @@ State 0
 
     NAME  shift, and go to state 1
 
-    PROG   go to state 2
-    ARRAY  go to state 3
+    PROG      go to state 2
+    ARR_STMT  go to state 3
+    ARRAY     go to state 4
 
 
 State 1
 
-    7 ARRAY: NAME . '[' ARR_INDEX_EQ ARRAY1
+   10 ARRAY: NAME . '[' ARR_INDEX_EQ ARRAY1
 
-    '['  shift, and go to state 4
+    '['  shift, and go to state 5
 
 
 State 2
 
     0 $accept: PROG . $end
 
-    $end  shift, and go to state 5
+    $end  shift, and go to state 6
 
 
 State 3
 
-    1 PROG: ARRAY .
+    1 PROG: ARR_STMT .
 
     $default  reduce using rule 1 (PROG)
 
 
 State 4
 
-    7 ARRAY: NAME '[' . ARR_INDEX_EQ ARRAY1
+    7 ARR_STMT: ARRAY . '=' ARRSUM ';'
 
-    NAME            shift, and go to state 6
-    INTEGER_NUMBER  shift, and go to state 7
-
-    ARR_INDEX_EQ  go to state 8
+    '='  shift, and go to state 7
 
 
 State 5
+
+   10 ARRAY: NAME '[' . ARR_INDEX_EQ ARRAY1
+
+    NAME            shift, and go to state 8
+    INTEGER_NUMBER  shift, and go to state 9
+
+    ARR_INDEX_EQ  go to state 10
+
+
+State 6
 
     0 $accept: PROG $end .
 
     $default  accept
 
 
-State 6
+State 7
+
+    7 ARR_STMT: ARRAY '=' . ARRSUM ';'
+
+    NAME  shift, and go to state 1
+
+    ARRSUM  go to state 11
+    ARRAY   go to state 12
+
+
+State 8
 
     5 ARR_INDEX_EQ: NAME .
 
     $default  reduce using rule 5 (ARR_INDEX_EQ)
 
 
-State 7
+State 9
 
     2 ARR_INDEX_EQ: INTEGER_NUMBER . '*' NAME
     6             | INTEGER_NUMBER .
 
-    '*'  shift, and go to state 9
+    '*'  shift, and go to state 13
 
     $default  reduce using rule 6 (ARR_INDEX_EQ)
 
 
-State 8
+State 10
 
     3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
     4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
-    7 ARRAY: NAME '[' ARR_INDEX_EQ . ARRAY1
+   10 ARRAY: NAME '[' ARR_INDEX_EQ . ARRAY1
 
-    '+'  shift, and go to state 10
-    '-'  shift, and go to state 11
-    ']'  shift, and go to state 12
+    '+'  shift, and go to state 14
+    '-'  shift, and go to state 15
+    ']'  shift, and go to state 16
 
-    ARRAY1  go to state 13
-
-
-State 9
-
-    2 ARR_INDEX_EQ: INTEGER_NUMBER '*' . NAME
-
-    NAME  shift, and go to state 14
-
-
-State 10
-
-    3 ARR_INDEX_EQ: ARR_INDEX_EQ '+' . ARR_INDEX_EQ
-
-    NAME            shift, and go to state 6
-    INTEGER_NUMBER  shift, and go to state 7
-
-    ARR_INDEX_EQ  go to state 15
+    ARRAY1  go to state 17
 
 
 State 11
 
-    4 ARR_INDEX_EQ: ARR_INDEX_EQ '-' . ARR_INDEX_EQ
+    7 ARR_STMT: ARRAY '=' ARRSUM . ';'
 
-    NAME            shift, and go to state 6
-    INTEGER_NUMBER  shift, and go to state 7
-
-    ARR_INDEX_EQ  go to state 16
+    ';'  shift, and go to state 18
 
 
 State 12
 
-    8 ARRAY1: ']' . '[' ARR_INDEX_EQ ARRAY1
-    9       | ']' .
+    8 ARRSUM: ARRAY . '+' ARRSUM
+    9       | ARRAY .
 
-    '['  shift, and go to state 17
+    '+'  shift, and go to state 19
 
-    $default  reduce using rule 9 (ARRAY1)
+    $default  reduce using rule 9 (ARRSUM)
 
 
 State 13
 
-    7 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1 .
+    2 ARR_INDEX_EQ: INTEGER_NUMBER '*' . NAME
 
-    $default  reduce using rule 7 (ARRAY)
+    NAME  shift, and go to state 20
 
 
 State 14
+
+    3 ARR_INDEX_EQ: ARR_INDEX_EQ '+' . ARR_INDEX_EQ
+
+    NAME            shift, and go to state 8
+    INTEGER_NUMBER  shift, and go to state 9
+
+    ARR_INDEX_EQ  go to state 21
+
+
+State 15
+
+    4 ARR_INDEX_EQ: ARR_INDEX_EQ '-' . ARR_INDEX_EQ
+
+    NAME            shift, and go to state 8
+    INTEGER_NUMBER  shift, and go to state 9
+
+    ARR_INDEX_EQ  go to state 22
+
+
+State 16
+
+   11 ARRAY1: ']' . '[' ARR_INDEX_EQ ARRAY1
+   12       | ']' .
+
+    '['  shift, and go to state 23
+
+    $default  reduce using rule 12 (ARRAY1)
+
+
+State 17
+
+   10 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1 .
+
+    $default  reduce using rule 10 (ARRAY)
+
+
+State 18
+
+    7 ARR_STMT: ARRAY '=' ARRSUM ';' .
+
+    $default  reduce using rule 7 (ARR_STMT)
+
+
+State 19
+
+    8 ARRSUM: ARRAY '+' . ARRSUM
+
+    NAME  shift, and go to state 1
+
+    ARRSUM  go to state 24
+    ARRAY   go to state 12
+
+
+State 20
 
     2 ARR_INDEX_EQ: INTEGER_NUMBER '*' NAME .
 
     $default  reduce using rule 2 (ARR_INDEX_EQ)
 
 
-State 15
+State 21
 
     3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
     3             | ARR_INDEX_EQ '+' ARR_INDEX_EQ .
@@ -203,7 +309,7 @@ State 15
     $default  reduce using rule 3 (ARR_INDEX_EQ)
 
 
-State 16
+State 22
 
     3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
     4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
@@ -212,31 +318,38 @@ State 16
     $default  reduce using rule 4 (ARR_INDEX_EQ)
 
 
-State 17
+State 23
 
-    8 ARRAY1: ']' '[' . ARR_INDEX_EQ ARRAY1
+   11 ARRAY1: ']' '[' . ARR_INDEX_EQ ARRAY1
 
-    NAME            shift, and go to state 6
-    INTEGER_NUMBER  shift, and go to state 7
+    NAME            shift, and go to state 8
+    INTEGER_NUMBER  shift, and go to state 9
 
-    ARR_INDEX_EQ  go to state 18
+    ARR_INDEX_EQ  go to state 25
 
 
-State 18
+State 24
+
+    8 ARRSUM: ARRAY '+' ARRSUM .
+
+    $default  reduce using rule 8 (ARRSUM)
+
+
+State 25
 
     3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
     4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
-    8 ARRAY1: ']' '[' ARR_INDEX_EQ . ARRAY1
+   11 ARRAY1: ']' '[' ARR_INDEX_EQ . ARRAY1
 
-    '+'  shift, and go to state 10
-    '-'  shift, and go to state 11
-    ']'  shift, and go to state 12
+    '+'  shift, and go to state 14
+    '-'  shift, and go to state 15
+    ']'  shift, and go to state 16
 
-    ARRAY1  go to state 19
+    ARRAY1  go to state 26
 
 
-State 19
+State 26
 
-    8 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1 .
+   11 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1 .
 
-    $default  reduce using rule 8 (ARRAY1)
+    $default  reduce using rule 11 (ARRAY1)
