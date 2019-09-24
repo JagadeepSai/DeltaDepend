@@ -161,6 +161,8 @@ class Incre_Ast: public Ast {
 class ARR_EQ_Ast : public Ast {
 	
 	int consta ;  
+	//FIXME: This can be changed to map<string,int> to make a bit easy 
+	// take care about merge(..) if changing this
 	list<string>* var_names; 
 	list<int>* coeffs;
 
