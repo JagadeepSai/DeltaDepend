@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 CPP=g++ 
-SOURCE=lex.yy.c parser.tab.c ast.cc 
+SOURCE=lex.yy.c parser.tab.c ast.cc solver.cc 
 MYPROGRAM=delta
 MYLIBRARY=$(CURDIR)
 LDFLAGS=-Wl,-rpath=$(CURDIR)

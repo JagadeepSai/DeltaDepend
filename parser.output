@@ -1,355 +1,680 @@
-Nonterminals useless in grammar
-
-   STMT
-   $@1
-   STMTs
-   INCRE
-   COND
-
-
 Terminals unused in grammar
 
    INTEGER
-   ASSIGN_OP
-   GTE
-   LTE
-   LT
-   GT
-   EQ
-   NEQ
-   NOT
-   FOR
-   '{'
-   '}'
-   '('
-   ')'
-
-
-Rules useless in grammar
-
-   13 STMT: '{' STMTs '}'
-
-   14 $@1: %empty
-
-   15 STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
-
-   16 STMTs: STMTs STMT
-   17      | %empty
-
-   18 INCRE: NAME '+' '+'
-   19      | NAME '-' '-'
-
-   20 COND: '(' COND ')'
-   21     | NAME LT INTEGER_NUMBER
-   22     | NAME LTE INTEGER_NUMBER
-   23     | NAME GT INTEGER_NUMBER
-   24     | NAME GTE INTEGER_NUMBER
-   25     | NAME EQ INTEGER_NUMBER
-   26     | NAME NEQ INTEGER_NUMBER
-   27     | NOT COND
 
 
 Grammar
 
     0 $accept: PROG $end
 
-    1 PROG: ARR_STMT
+    1 PROG: STMT
 
-    2 ARR_INDEX_EQ: INTEGER_NUMBER '*' NAME
-    3             | ARR_INDEX_EQ '+' ARR_INDEX_EQ
-    4             | ARR_INDEX_EQ '-' ARR_INDEX_EQ
-    5             | NAME
-    6             | INTEGER_NUMBER
+    2 STMT: '{' STMTs '}'
+    3     | FOR_STMT
+    4     | ARR_STMT
 
-    7 ARR_STMT: ARRAY '=' ARRSUM ';'
+    5 STMTs: STMTs STMT
+    6      | %empty
 
-    8 ARRSUM: ARRAY '+' ARRSUM
-    9       | ARRAY
+    7 ARR_INDEX_EQ: INTEGER_NUMBER '*' NAME
+    8             | ARR_INDEX_EQ '+' ARR_INDEX_EQ
+    9             | ARR_INDEX_EQ '-' ARR_INDEX_EQ
+   10             | NAME
+   11             | INTEGER_NUMBER
 
-   10 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1
+   12 ARR_STMT: ARRAY ASSIGN_OP ARRSUM ';'
 
-   11 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1
-   12       | ']'
+   13 ARRSUM: ARRAY '+' ARRSUM
+   14       | ARRAY
+
+   15 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1
+
+   16 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1
+   17       | ']'
+
+   18 $@1: %empty
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
+
+   20 INCRE: NAME '+' '+'
+   21      | NAME '-' '-'
+
+   22 COND: '(' COND ')'
+   23     | NAME LT INTEGER_NUMBER
+   24     | NAME LTE INTEGER_NUMBER
+   25     | NAME GT INTEGER_NUMBER
+   26     | NAME GTE INTEGER_NUMBER
+   27     | NAME EQ INTEGER_NUMBER
+   28     | NAME NEQ INTEGER_NUMBER
+   29     | NOT COND
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-'(' (40)
-')' (41)
-'*' (42) 2
-'+' (43) 3 8
-'-' (45) 4
-';' (59) 7
-'=' (61) 7
-'[' (91) 10 11
-']' (93) 11 12
-'{' (123)
-'}' (125)
+'(' (40) 19 22
+')' (41) 19 22
+'*' (42) 7
+'+' (43) 8 13 20
+'-' (45) 9 21
+';' (59) 12 19
+'[' (91) 15 16
+']' (93) 16 17
+'{' (123) 2
+'}' (125) 2
 error (256)
 INTEGER (258)
-ASSIGN_OP (259)
-GTE (260)
-LTE (261)
-LT (262)
-GT (263)
-EQ (264)
-NEQ (265)
-NOT (266)
-FOR (267)
-NAME (268) 2 5 10
-INTEGER_NUMBER (269) 2 6
+ASSIGN_OP (259) 12 19
+GTE (260) 26
+LTE (261) 24
+LT (262) 23
+GT (263) 25
+EQ (264) 27
+NEQ (265) 28
+NOT (266) 29
+FOR (267) 19
+NAME (268) 7 10 15 19 20 21 23 24 25 26 27 28
+INTEGER_NUMBER (269) 7 11 19 23 24 25 26 27 28
 
 
 Nonterminals, with rules where they appear
 
-$accept (26)
+$accept (25)
     on left: 0
-PROG (27)
+PROG (26)
     on left: 1, on right: 0
-ARR_INDEX_EQ (28)
-    on left: 2 3 4 5 6, on right: 3 4 10 11
-ARR_STMT (29)
-    on left: 7, on right: 1
-ARRSUM (30)
-    on left: 8 9, on right: 7 8
-ARRAY (31)
-    on left: 10, on right: 7 8 9
-ARRAY1 (32)
-    on left: 11 12, on right: 10 11
+STMT (27)
+    on left: 2 3 4, on right: 1 5 19
+STMTs (28)
+    on left: 5 6, on right: 2 5
+ARR_INDEX_EQ (29)
+    on left: 7 8 9 10 11, on right: 8 9 15 16
+ARR_STMT (30)
+    on left: 12, on right: 4
+ARRSUM (31)
+    on left: 13 14, on right: 12 13
+ARRAY (32)
+    on left: 15, on right: 12 13 14
+ARRAY1 (33)
+    on left: 16 17, on right: 15 16
+FOR_STMT (34)
+    on left: 19, on right: 3
+$@1 (35)
+    on left: 18, on right: 19
+INCRE (36)
+    on left: 20 21, on right: 19
+COND (37)
+    on left: 22 23 24 25 26 27 28 29, on right: 19 22 29
 
 
 State 0
 
     0 $accept: . PROG $end
 
-    NAME  shift, and go to state 1
+    FOR   shift, and go to state 1
+    NAME  shift, and go to state 2
+    '{'   shift, and go to state 3
 
-    PROG      go to state 2
-    ARR_STMT  go to state 3
-    ARRAY     go to state 4
+    PROG      go to state 4
+    STMT      go to state 5
+    ARR_STMT  go to state 6
+    ARRAY     go to state 7
+    FOR_STMT  go to state 8
 
 
 State 1
 
-   10 ARRAY: NAME . '[' ARR_INDEX_EQ ARRAY1
+   19 FOR_STMT: FOR . '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
 
-    '['  shift, and go to state 5
+    '('  shift, and go to state 9
 
 
 State 2
 
-    0 $accept: PROG . $end
+   15 ARRAY: NAME . '[' ARR_INDEX_EQ ARRAY1
 
-    $end  shift, and go to state 6
+    '['  shift, and go to state 10
 
 
 State 3
 
-    1 PROG: ARR_STMT .
+    2 STMT: '{' . STMTs '}'
 
-    $default  reduce using rule 1 (PROG)
+    $default  reduce using rule 6 (STMTs)
+
+    STMTs  go to state 11
 
 
 State 4
 
-    7 ARR_STMT: ARRAY . '=' ARRSUM ';'
+    0 $accept: PROG . $end
 
-    '='  shift, and go to state 7
+    $end  shift, and go to state 12
 
 
 State 5
 
-   10 ARRAY: NAME '[' . ARR_INDEX_EQ ARRAY1
+    1 PROG: STMT .
 
-    NAME            shift, and go to state 8
-    INTEGER_NUMBER  shift, and go to state 9
-
-    ARR_INDEX_EQ  go to state 10
+    $default  reduce using rule 1 (PROG)
 
 
 State 6
+
+    4 STMT: ARR_STMT .
+
+    $default  reduce using rule 4 (STMT)
+
+
+State 7
+
+   12 ARR_STMT: ARRAY . ASSIGN_OP ARRSUM ';'
+
+    ASSIGN_OP  shift, and go to state 13
+
+
+State 8
+
+    3 STMT: FOR_STMT .
+
+    $default  reduce using rule 3 (STMT)
+
+
+State 9
+
+   19 FOR_STMT: FOR '(' . NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
+
+    NAME  shift, and go to state 14
+
+
+State 10
+
+   15 ARRAY: NAME '[' . ARR_INDEX_EQ ARRAY1
+
+    NAME            shift, and go to state 15
+    INTEGER_NUMBER  shift, and go to state 16
+
+    ARR_INDEX_EQ  go to state 17
+
+
+State 11
+
+    2 STMT: '{' STMTs . '}'
+    5 STMTs: STMTs . STMT
+
+    FOR   shift, and go to state 1
+    NAME  shift, and go to state 2
+    '{'   shift, and go to state 3
+    '}'   shift, and go to state 18
+
+    STMT      go to state 19
+    ARR_STMT  go to state 6
+    ARRAY     go to state 7
+    FOR_STMT  go to state 8
+
+
+State 12
 
     0 $accept: PROG $end .
 
     $default  accept
 
 
-State 7
-
-    7 ARR_STMT: ARRAY '=' . ARRSUM ';'
-
-    NAME  shift, and go to state 1
-
-    ARRSUM  go to state 11
-    ARRAY   go to state 12
-
-
-State 8
-
-    5 ARR_INDEX_EQ: NAME .
-
-    $default  reduce using rule 5 (ARR_INDEX_EQ)
-
-
-State 9
-
-    2 ARR_INDEX_EQ: INTEGER_NUMBER . '*' NAME
-    6             | INTEGER_NUMBER .
-
-    '*'  shift, and go to state 13
-
-    $default  reduce using rule 6 (ARR_INDEX_EQ)
-
-
-State 10
-
-    3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
-    4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
-   10 ARRAY: NAME '[' ARR_INDEX_EQ . ARRAY1
-
-    '+'  shift, and go to state 14
-    '-'  shift, and go to state 15
-    ']'  shift, and go to state 16
-
-    ARRAY1  go to state 17
-
-
-State 11
-
-    7 ARR_STMT: ARRAY '=' ARRSUM . ';'
-
-    ';'  shift, and go to state 18
-
-
-State 12
-
-    8 ARRSUM: ARRAY . '+' ARRSUM
-    9       | ARRAY .
-
-    '+'  shift, and go to state 19
-
-    $default  reduce using rule 9 (ARRSUM)
-
-
 State 13
 
-    2 ARR_INDEX_EQ: INTEGER_NUMBER '*' . NAME
+   12 ARR_STMT: ARRAY ASSIGN_OP . ARRSUM ';'
 
-    NAME  shift, and go to state 20
+    NAME  shift, and go to state 2
+
+    ARRSUM  go to state 20
+    ARRAY   go to state 21
 
 
 State 14
 
-    3 ARR_INDEX_EQ: ARR_INDEX_EQ '+' . ARR_INDEX_EQ
+   19 FOR_STMT: FOR '(' NAME . ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
 
-    NAME            shift, and go to state 8
-    INTEGER_NUMBER  shift, and go to state 9
-
-    ARR_INDEX_EQ  go to state 21
+    ASSIGN_OP  shift, and go to state 22
 
 
 State 15
 
-    4 ARR_INDEX_EQ: ARR_INDEX_EQ '-' . ARR_INDEX_EQ
+   10 ARR_INDEX_EQ: NAME .
 
-    NAME            shift, and go to state 8
-    INTEGER_NUMBER  shift, and go to state 9
-
-    ARR_INDEX_EQ  go to state 22
+    $default  reduce using rule 10 (ARR_INDEX_EQ)
 
 
 State 16
 
-   11 ARRAY1: ']' . '[' ARR_INDEX_EQ ARRAY1
-   12       | ']' .
+    7 ARR_INDEX_EQ: INTEGER_NUMBER . '*' NAME
+   11             | INTEGER_NUMBER .
 
-    '['  shift, and go to state 23
+    '*'  shift, and go to state 23
 
-    $default  reduce using rule 12 (ARRAY1)
+    $default  reduce using rule 11 (ARR_INDEX_EQ)
 
 
 State 17
 
-   10 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1 .
+    8 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
+    9             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
+   15 ARRAY: NAME '[' ARR_INDEX_EQ . ARRAY1
 
-    $default  reduce using rule 10 (ARRAY)
+    '+'  shift, and go to state 24
+    '-'  shift, and go to state 25
+    ']'  shift, and go to state 26
+
+    ARRAY1  go to state 27
 
 
 State 18
 
-    7 ARR_STMT: ARRAY '=' ARRSUM ';' .
+    2 STMT: '{' STMTs '}' .
 
-    $default  reduce using rule 7 (ARR_STMT)
+    $default  reduce using rule 2 (STMT)
 
 
 State 19
 
-    8 ARRSUM: ARRAY '+' . ARRSUM
+    5 STMTs: STMTs STMT .
 
-    NAME  shift, and go to state 1
-
-    ARRSUM  go to state 24
-    ARRAY   go to state 12
+    $default  reduce using rule 5 (STMTs)
 
 
 State 20
 
-    2 ARR_INDEX_EQ: INTEGER_NUMBER '*' NAME .
+   12 ARR_STMT: ARRAY ASSIGN_OP ARRSUM . ';'
 
-    $default  reduce using rule 2 (ARR_INDEX_EQ)
+    ';'  shift, and go to state 28
 
 
 State 21
 
-    3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
-    3             | ARR_INDEX_EQ '+' ARR_INDEX_EQ .
-    4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
+   13 ARRSUM: ARRAY . '+' ARRSUM
+   14       | ARRAY .
 
-    $default  reduce using rule 3 (ARR_INDEX_EQ)
+    '+'  shift, and go to state 29
+
+    $default  reduce using rule 14 (ARRSUM)
 
 
 State 22
 
-    3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
-    4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
-    4             | ARR_INDEX_EQ '-' ARR_INDEX_EQ .
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP . INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT
 
-    $default  reduce using rule 4 (ARR_INDEX_EQ)
+    INTEGER_NUMBER  shift, and go to state 30
 
 
 State 23
 
-   11 ARRAY1: ']' '[' . ARR_INDEX_EQ ARRAY1
+    7 ARR_INDEX_EQ: INTEGER_NUMBER '*' . NAME
 
-    NAME            shift, and go to state 8
-    INTEGER_NUMBER  shift, and go to state 9
-
-    ARR_INDEX_EQ  go to state 25
+    NAME  shift, and go to state 31
 
 
 State 24
 
-    8 ARRSUM: ARRAY '+' ARRSUM .
+    8 ARR_INDEX_EQ: ARR_INDEX_EQ '+' . ARR_INDEX_EQ
 
-    $default  reduce using rule 8 (ARRSUM)
+    NAME            shift, and go to state 15
+    INTEGER_NUMBER  shift, and go to state 16
+
+    ARR_INDEX_EQ  go to state 32
 
 
 State 25
 
-    3 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
-    4             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
-   11 ARRAY1: ']' '[' ARR_INDEX_EQ . ARRAY1
+    9 ARR_INDEX_EQ: ARR_INDEX_EQ '-' . ARR_INDEX_EQ
 
-    '+'  shift, and go to state 14
-    '-'  shift, and go to state 15
-    ']'  shift, and go to state 16
+    NAME            shift, and go to state 15
+    INTEGER_NUMBER  shift, and go to state 16
 
-    ARRAY1  go to state 26
+    ARR_INDEX_EQ  go to state 33
 
 
 State 26
 
-   11 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1 .
+   16 ARRAY1: ']' . '[' ARR_INDEX_EQ ARRAY1
+   17       | ']' .
 
-    $default  reduce using rule 11 (ARRAY1)
+    '['  shift, and go to state 34
+
+    $default  reduce using rule 17 (ARRAY1)
+
+
+State 27
+
+   15 ARRAY: NAME '[' ARR_INDEX_EQ ARRAY1 .
+
+    $default  reduce using rule 15 (ARRAY)
+
+
+State 28
+
+   12 ARR_STMT: ARRAY ASSIGN_OP ARRSUM ';' .
+
+    $default  reduce using rule 12 (ARR_STMT)
+
+
+State 29
+
+   13 ARRSUM: ARRAY '+' . ARRSUM
+
+    NAME  shift, and go to state 2
+
+    ARRSUM  go to state 35
+    ARRAY   go to state 21
+
+
+State 30
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER . ';' COND ';' INCRE ')' $@1 STMT
+
+    ';'  shift, and go to state 36
+
+
+State 31
+
+    7 ARR_INDEX_EQ: INTEGER_NUMBER '*' NAME .
+
+    $default  reduce using rule 7 (ARR_INDEX_EQ)
+
+
+State 32
+
+    8 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
+    8             | ARR_INDEX_EQ '+' ARR_INDEX_EQ .
+    9             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
+
+    $default  reduce using rule 8 (ARR_INDEX_EQ)
+
+
+State 33
+
+    8 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
+    9             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
+    9             | ARR_INDEX_EQ '-' ARR_INDEX_EQ .
+
+    $default  reduce using rule 9 (ARR_INDEX_EQ)
+
+
+State 34
+
+   16 ARRAY1: ']' '[' . ARR_INDEX_EQ ARRAY1
+
+    NAME            shift, and go to state 15
+    INTEGER_NUMBER  shift, and go to state 16
+
+    ARR_INDEX_EQ  go to state 37
+
+
+State 35
+
+   13 ARRSUM: ARRAY '+' ARRSUM .
+
+    $default  reduce using rule 13 (ARRSUM)
+
+
+State 36
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' . COND ';' INCRE ')' $@1 STMT
+
+    NOT   shift, and go to state 38
+    NAME  shift, and go to state 39
+    '('   shift, and go to state 40
+
+    COND  go to state 41
+
+
+State 37
+
+    8 ARR_INDEX_EQ: ARR_INDEX_EQ . '+' ARR_INDEX_EQ
+    9             | ARR_INDEX_EQ . '-' ARR_INDEX_EQ
+   16 ARRAY1: ']' '[' ARR_INDEX_EQ . ARRAY1
+
+    '+'  shift, and go to state 24
+    '-'  shift, and go to state 25
+    ']'  shift, and go to state 26
+
+    ARRAY1  go to state 42
+
+
+State 38
+
+   29 COND: NOT . COND
+
+    NOT   shift, and go to state 38
+    NAME  shift, and go to state 39
+    '('   shift, and go to state 40
+
+    COND  go to state 43
+
+
+State 39
+
+   23 COND: NAME . LT INTEGER_NUMBER
+   24     | NAME . LTE INTEGER_NUMBER
+   25     | NAME . GT INTEGER_NUMBER
+   26     | NAME . GTE INTEGER_NUMBER
+   27     | NAME . EQ INTEGER_NUMBER
+   28     | NAME . NEQ INTEGER_NUMBER
+
+    GTE  shift, and go to state 44
+    LTE  shift, and go to state 45
+    LT   shift, and go to state 46
+    GT   shift, and go to state 47
+    EQ   shift, and go to state 48
+    NEQ  shift, and go to state 49
+
+
+State 40
+
+   22 COND: '(' . COND ')'
+
+    NOT   shift, and go to state 38
+    NAME  shift, and go to state 39
+    '('   shift, and go to state 40
+
+    COND  go to state 50
+
+
+State 41
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND . ';' INCRE ')' $@1 STMT
+
+    ';'  shift, and go to state 51
+
+
+State 42
+
+   16 ARRAY1: ']' '[' ARR_INDEX_EQ ARRAY1 .
+
+    $default  reduce using rule 16 (ARRAY1)
+
+
+State 43
+
+   29 COND: NOT COND .
+
+    $default  reduce using rule 29 (COND)
+
+
+State 44
+
+   26 COND: NAME GTE . INTEGER_NUMBER
+
+    INTEGER_NUMBER  shift, and go to state 52
+
+
+State 45
+
+   24 COND: NAME LTE . INTEGER_NUMBER
+
+    INTEGER_NUMBER  shift, and go to state 53
+
+
+State 46
+
+   23 COND: NAME LT . INTEGER_NUMBER
+
+    INTEGER_NUMBER  shift, and go to state 54
+
+
+State 47
+
+   25 COND: NAME GT . INTEGER_NUMBER
+
+    INTEGER_NUMBER  shift, and go to state 55
+
+
+State 48
+
+   27 COND: NAME EQ . INTEGER_NUMBER
+
+    INTEGER_NUMBER  shift, and go to state 56
+
+
+State 49
+
+   28 COND: NAME NEQ . INTEGER_NUMBER
+
+    INTEGER_NUMBER  shift, and go to state 57
+
+
+State 50
+
+   22 COND: '(' COND . ')'
+
+    ')'  shift, and go to state 58
+
+
+State 51
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' . INCRE ')' $@1 STMT
+
+    NAME  shift, and go to state 59
+
+    INCRE  go to state 60
+
+
+State 52
+
+   26 COND: NAME GTE INTEGER_NUMBER .
+
+    $default  reduce using rule 26 (COND)
+
+
+State 53
+
+   24 COND: NAME LTE INTEGER_NUMBER .
+
+    $default  reduce using rule 24 (COND)
+
+
+State 54
+
+   23 COND: NAME LT INTEGER_NUMBER .
+
+    $default  reduce using rule 23 (COND)
+
+
+State 55
+
+   25 COND: NAME GT INTEGER_NUMBER .
+
+    $default  reduce using rule 25 (COND)
+
+
+State 56
+
+   27 COND: NAME EQ INTEGER_NUMBER .
+
+    $default  reduce using rule 27 (COND)
+
+
+State 57
+
+   28 COND: NAME NEQ INTEGER_NUMBER .
+
+    $default  reduce using rule 28 (COND)
+
+
+State 58
+
+   22 COND: '(' COND ')' .
+
+    $default  reduce using rule 22 (COND)
+
+
+State 59
+
+   20 INCRE: NAME . '+' '+'
+   21      | NAME . '-' '-'
+
+    '+'  shift, and go to state 61
+    '-'  shift, and go to state 62
+
+
+State 60
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE . ')' $@1 STMT
+
+    ')'  shift, and go to state 63
+
+
+State 61
+
+   20 INCRE: NAME '+' . '+'
+
+    '+'  shift, and go to state 64
+
+
+State 62
+
+   21 INCRE: NAME '-' . '-'
+
+    '-'  shift, and go to state 65
+
+
+State 63
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' . $@1 STMT
+
+    $default  reduce using rule 18 ($@1)
+
+    $@1  go to state 66
+
+
+State 64
+
+   20 INCRE: NAME '+' '+' .
+
+    $default  reduce using rule 20 (INCRE)
+
+
+State 65
+
+   21 INCRE: NAME '-' '-' .
+
+    $default  reduce using rule 21 (INCRE)
+
+
+State 66
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 . STMT
+
+    FOR   shift, and go to state 1
+    NAME  shift, and go to state 2
+    '{'   shift, and go to state 3
+
+    STMT      go to state 67
+    ARR_STMT  go to state 6
+    ARRAY     go to state 7
+    FOR_STMT  go to state 8
+
+
+State 67
+
+   19 FOR_STMT: FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' $@1 STMT .
+
+    $default  reduce using rule 19 (FOR_STMT)

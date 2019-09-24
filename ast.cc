@@ -39,7 +39,6 @@ FOR_Ast::FOR_Ast(){
     this->ind_end = 0;
     this->cond = new Cond_Ast();
     this->iter_name = "$$";
-    this->body = new Ast();
 
 }
 FOR_Ast::~FOR_Ast(){}
@@ -75,12 +74,14 @@ string FOR_Ast::check_ast(){
 }
 void FOR_Ast::print(int l){
     debug("FOR_Ast print ");
-    cout<<this->get_index() << ":FOR ( " << this->iter_name << " = " << this->i_start << " ; "; 
+    cout<<this->ind_start << ":" << this->ind_end << ":" << "FOR ( " << this->iter_name << " = " << this->i_start << " ; "; 
     this->cond->print(l); cout << " ; "; this->Incre->print(l);
     cout << " ) "<<endl;
-    space_print(l); cout<<" { "<<endl;
-    // this->body->print(l+1);
-    space_print(l); cout<<" } "<<endl;
+    if(this->body != NULL){
+        space_print(l); cout<<" { "<<endl;
+        this->body->print(l+1);
+        space_print(l); cout<<" } "<<endl;
+    }
 
     debug("FOR_Ast print ENDED");
 }
@@ -117,7 +118,7 @@ list<ARR_EQ_Ast*>* ARR_Ast::get_eqs(){  return this->eqs; }
 
 
 void ARR_Ast::print(int l){
-    cout<< this->arr_name << " ";
+    cout<<this->get_index()<<":"<<this->arr_name << " ";
     list<ARR_EQ_Ast*>::iterator eq_iter = this->eqs->begin();
     for(;eq_iter != this->eqs->end(); eq_iter ++){
         cout<<"[ ";

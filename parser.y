@@ -1,6 +1,7 @@
 %{
     #include <stdio.h>
     #include <queue>
+    #include <stack>
     using namespace std;
     extern "C" void yyerror(char *);
     extern FILE * yyin;
@@ -12,12 +13,11 @@
         exit ( EXIT_FAILURE );
     }
 
-    int global_index ;  // For Scopes 
+    int gscope ;  // For Scopes 
     int cur_index;
-    queue<int > index_scope;
-    list<ARR_Ast*> Reads,Writes;
-    list<FOR_Ast*> Fors;
-
+    stack<FOR_Ast*> index_scope;
+    list<ARR_Ast*>* Reads,*Writes;
+    list<FOR_Ast*>* Fors;
 %}
 %code requires {
     #include "headers.h"
@@ -43,11 +43,12 @@
 %token <stringer>  NAME 
 %token <integer>   INTEGER_NUMBER 
 
-%type <AST> STMT PROG FOR STMTs ARR_STMT
+%type <AST> STMT PROG STMTs ARR_STMT FOR_STMT
 %type <COND_AST> COND
 %type <INC_AST> INCRE
 %type <ARR_INDEX_EQ_AST> ARR_INDEX_EQ
 %type <ARR_AST> ARRAY ARRAY1 ARRSUM 
+%type <FOR_Ast> FOR
 
 
 // %type  <AST> ASSIGN_VALUE ARR_INDEX_EQ STMT ASSIGN_STMT COND FUNCCALL
@@ -64,40 +65,13 @@
 %start PROG
 
 %%
-PROG : ARR_STMT {
+PROG : STMT {
                 MAIN = $1;
             }
 STMT : 
     '{' STMTs '}' { $$ = new Ast(); }
-    | FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' 
-    
-    {   string name = *$3;
-        int i_start = $5, i_end = $7->get_value();
-
-        FOR_Ast * forloop = new FOR_Ast();      // Making the For Ast
-        forloop->set_iter_name(name);
-        forloop->set_i_start(i_start);
-        forloop->set_i_end(i_end);
-        forloop->set_Cond($7);
-        forloop->set_Incre($9);
-                                                
-        string err = forloop->check_ast();       // Checking the For Ast 
-        if(err != "") { yyerror(err.c_str()); }
-        // forloop->print(global_index); // Printing 
-
-        // TODO: Change the increment Conditions
-        forloop->set_ind_start(global_index);     
-        index_scope.push(global_index);
-        global_index++;
-
-        Fors.push_back(forloop); // Adding to the For list
-        
-        // $$ = new Ast();   //Hack
-    }  
-    STMT {
-                        global_index--;
-                        index_scope.pop();
-                    }
+    | FOR_STMT {$$ = $1;} 
+    | ARR_STMT {$$ = $1;}
     
 STMTs: 
     STMTs STMT      {$$=$1;}
@@ -115,26 +89,22 @@ ARR_INDEX_EQ :
 
 
 ARR_STMT : 
-    ARRAY '=' ARRSUM ';'    { Writes.push_back($1); $$= new Ast();}
+    ARRAY ASSIGN_OP ARRSUM ';'    {     cur_index++;
+                                        $1->set_isSource(true); Writes->push_back($1); $$= new Ast();
+                                  }
 
 ARRSUM :
-    ARRAY '+' ARRSUM {  Reads.push_back($1); $$ = new ARR_Ast();}
-    | ARRAY { $1->set_isSource(false); Reads.push_back($1); $$ = new ARR_Ast(); }
+    ARRAY '+' ARRSUM { 
+                        $1->set_isSource(false); Reads->push_back($1); $$ = new ARR_Ast();
+                    }
+    | ARRAY { $1->set_isSource(false); Reads->push_back($1); $$ = new ARR_Ast(); }
     
-
-
-// EXPR : 
-//        EXPR '-' EXPR 
-//     |  EXPR '+' EXPR 
-//     | NAME            
-//     | INTEGER_NUMBER 
-//     | ARRAY 
-
 ARRAY : 
     NAME '[' ARR_INDEX_EQ ARRAY1 {  
                                     $4->set_arr_name(*$1);
                                     $4->add_arr_dim(1);
                                     $4->add_eqs($3);
+                                    $4->set_nested_level(gscope);
                                     $$ = $4;
                                 }
 
@@ -146,12 +116,50 @@ ARRAY1 :
                          }
     | ']'            { 
                         ARR_Ast * arr = new ARR_Ast(); 
-                        arr->set_index(global_index);
+                        arr->set_index(cur_index);
                         $$ = arr;
                     }
 
 
 // --------------------------------- For Loop ---------------------------------------------------------
+
+FOR_STMT : 
+    FOR '(' NAME ASSIGN_OP INTEGER_NUMBER ';' COND ';' INCRE ')' 
+    
+    {   string name = *$3;
+        int i_start = $5, i_end = $7->get_value();
+
+        FOR_Ast * forloop = new FOR_Ast();      // Making the For Ast
+        forloop->set_iter_name(name);
+        forloop->set_i_start(i_start);
+        forloop->set_i_end(i_end);
+        forloop->set_Cond($7);
+        forloop->set_Incre($9);
+        forloop->set_index(gscope);
+
+        string err = forloop->check_ast();       // Checking the For Ast 
+        if(err != "") { yyerror(err.c_str()); }
+        // forloop->print(gscope); // Printing 
+
+        // TODO: Change the increment Conditions
+        forloop->set_ind_start(cur_index);     
+        
+        gscope++;
+        cur_index++;
+
+        Fors->push_back(forloop); // Adding to the For list
+        index_scope.push(forloop);
+
+        // $$ = new Ast();   //Hack
+    }  
+    STMT {              FOR_Ast * forloop = index_scope.top();
+                        forloop->set_ind_end(cur_index);
+                        gscope--;
+                        cur_index++;
+                        index_scope.pop();
+                        $$ = new FOR_Ast();
+                    }
+
 INCRE : 
     NAME '+''+'   { $$ = new Incre_Ast(*$1,true); }
     | NAME '-''-'   { $$ = new Incre_Ast(*$1,false); }
@@ -180,17 +188,51 @@ COND :
 
 
 %%
+void print_reads(){
+    // list<ARR_Ast*> Reads
+    list<ARR_Ast*>::iterator it = Reads->begin();
+    for(;it != Reads->end();it++){
+        (*it)->print(0);
+        cout<<endl;
+    }
+}
+
+void print_writes(){
+    list<ARR_Ast*>::iterator it = Writes->begin();
+    for(;it != Writes->end();it++){
+        (*it)->print(0);
+        cout<<endl;
+    }
+}
+
+void print_fors(){
+    list<FOR_Ast*>::iterator it = Fors->begin();
+    for(;it != Fors->end();it++){
+        (*it)->print(0);
+        cout<<endl;
+    }
+}
 
 int main(int argc,char* argv[])
 {   
-    global_index = 0;
+    gscope = 0;
     cur_index = 0;
+    Reads = new list<ARR_Ast*>(); 
+    Writes = new list<ARR_Ast*>();
+    Fors = new list<FOR_Ast*>();
+
+    bool toprint = true;
     yyin = fopen(argv[1],"r");
     int ret = yyparse();
+
     if(ret==0){
-        printf("AST: ------------------------------------------ \n\n"); 
+        if(toprint){
+        printf("Reads: ------------------------------------------ \n\n"); print_reads(); 
+        printf("Writes: ------------------------------------------ \n\n"); print_writes(); 
+        printf("Fors: ------------------------------------------ \n\n"); print_fors(); 
         // MAIN->print(0);
         printf("\n");
+        }
     }
     else{
         printf("Error: %d Syntax Error \n",ret);
@@ -198,3 +240,4 @@ int main(int argc,char* argv[])
     }
   return 1;
 }
+
