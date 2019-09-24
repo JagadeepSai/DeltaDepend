@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 22 "parser.y" /* yacc.c:1909  */
+#line 50 "parser.y" /* yacc.c:1909  */
 
     #include "headers.h"
 
@@ -71,7 +71,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 25 "parser.y" /* yacc.c:1909  */
+#line 53 "parser.y" /* yacc.c:1909  */
 
     string *    stringer;
     char        character;

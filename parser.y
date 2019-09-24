@@ -2,6 +2,7 @@
     #include <stdio.h>
     #include <queue>
     #include <stack>
+    #include <map>
     using namespace std;
     extern "C" void yyerror(char *);
     extern FILE * yyin;
@@ -9,15 +10,42 @@
     extern int yylineno;
     int yyerror (const char *error )
     {
-        fprintf ( stderr, "\tError: %s detected at line %d\n", error, yylineno );
+        fprintf ( stderr, "\tError: %s ,detected at line %d\n", error, yylineno );
         exit ( EXIT_FAILURE );
     }
 
-    int gscope ;  // For Scopes 
+    int nlevel ;  // Nested Level 
     int cur_index;
     stack<FOR_Ast*> index_scope;
     list<ARR_Ast*>* Reads,*Writes;
     list<FOR_Ast*>* Fors;
+    map<string,pair<int,int> > forbounds;
+    map<string,pair<int,int> > stmt_forbounds;
+    map<string,int> arr_dims ; // For checking purposes
+
+        string check_arr_index(string name,int cur_index){
+            if(forbounds.find(name) == forbounds.end()){ 
+                    return "Variable in array not found" ;
+                }else{
+                    pair<int,int> forb = stmt_forbounds[name];
+                    if(forb.first < cur_index){
+                        if(forb.second !=-1 && forb.second < cur_index){
+                            return "Variable in Array out of scope";
+                        }
+                    }
+                }
+                return "";
+        }
+
+        string check_arr_dim(string name,int cur_dim){
+            if(arr_dims.find(name) != arr_dims.end()){
+                if(arr_dims[name] != cur_dim){
+                    return "Array dimensions mismatch";
+                }
+            }
+            return "";
+        }
+
 %}
 %code requires {
     #include "headers.h"
@@ -81,10 +109,18 @@ STMTs:
 // --------------------------------- Array ---------------------------------------------------------
 
 ARR_INDEX_EQ : 
-     INTEGER_NUMBER '*' NAME { $$ = new ARR_EQ_Ast(*$3,$1);                   }
+     INTEGER_NUMBER '*' NAME { 
+                                    $$ = new ARR_EQ_Ast(*$3,$1);    
+                                    string err = check_arr_index(*$3,cur_index);                  
+                                    if(err != ""){ yyerror(err.c_str()); }               
+                             }
     | ARR_INDEX_EQ '+' ARR_INDEX_EQ           { $1->merge($3); $$=$1;    }  
     | ARR_INDEX_EQ '-' ARR_INDEX_EQ           { $3->make_neg(false); $1->merge($3); $$=$1;  }    
-    | NAME                    { $$ = new ARR_EQ_Ast(*$1,1);                   }
+    | NAME                    {     
+                                    $$ = new ARR_EQ_Ast(*$1,1); 
+                                    string err = check_arr_index(*$1,cur_index);                  
+                                    if(err != ""){ yyerror(err.c_str()); }
+                                }
     | INTEGER_NUMBER          { $$ = new ARR_EQ_Ast($1);                      }      
 
 
@@ -103,8 +139,11 @@ ARRAY :
     NAME '[' ARR_INDEX_EQ ARRAY1 {  
                                     $4->set_arr_name(*$1);
                                     $4->add_arr_dim(1);
+                                    string err = check_arr_dim(*$1,$4->get_arr_dim());                  
+                                    if(err != ""){ yyerror(err.c_str()); } 
+                                    arr_dims[*$1] = $4->get_arr_dim();
                                     $4->add_eqs($3);
-                                    $4->set_nested_level(gscope);
+                                    $4->set_nested_level(nlevel);
                                     $$ = $4;
                                 }
 
@@ -112,6 +151,7 @@ ARRAY1 :
     ']' '[' ARR_INDEX_EQ ARRAY1 {      
                                 $4->add_eqs($3); 
                                 $4->add_arr_dim(1);
+                                
                                 $$ = $4;
                          }
     | ']'            { 
@@ -135,16 +175,21 @@ FOR_STMT :
         forloop->set_i_end(i_end);
         forloop->set_Cond($7);
         forloop->set_Incre($9);
-        forloop->set_index(gscope);
-
+        forloop->set_nested_level(nlevel);
+        forloop->set_ind_start(cur_index);    
+        forloop->set_index(cur_index); 
+        
         string err = forloop->check_ast();       // Checking the For Ast 
         if(err != "") { yyerror(err.c_str()); }
-        // forloop->print(gscope); // Printing 
+        if(forbounds.find(name) != forbounds.end()){ 
+            yyerror("iterator variables must be different");
+        }else {
+            forbounds[name] = make_pair(i_start,i_end);
+            stmt_forbounds[name] = make_pair(cur_index,-1);                        
+        }
 
-        // TODO: Change the increment Conditions
-        forloop->set_ind_start(cur_index);     
         
-        gscope++;
+        nlevel++;
         cur_index++;
 
         Fors->push_back(forloop); // Adding to the For list
@@ -154,7 +199,8 @@ FOR_STMT :
     }  
     STMT {              FOR_Ast * forloop = index_scope.top();
                         forloop->set_ind_end(cur_index);
-                        gscope--;
+                        stmt_forbounds[forloop->get_iter_name()] = make_pair(forloop->get_ind_start(), forloop->get_ind_end());                        
+                        nlevel--;
                         cur_index++;
                         index_scope.pop();
                         $$ = new FOR_Ast();
@@ -175,19 +221,8 @@ COND :
     | NAME NEQ  INTEGER_NUMBER        { $$ = new Cond_Ast(neq,*$1,$3); } 
     | NOT COND                        { $2->negate(); $$=$2; }
 
-
-// STMT:
-//     | '{' STMTs '}'                     {  
-//                                             
-//                                         }
-//     | FOR '(' ASSIGN_STMT ';' COND ';' ASSIGN_STMT ')' STMT { 
-//                                             
-//                                         }
-//     ;
-
-
-
 %%
+
 void print_reads(){
     // list<ARR_Ast*> Reads
     list<ARR_Ast*>::iterator it = Reads->begin();
@@ -215,7 +250,7 @@ void print_fors(){
 
 int main(int argc,char* argv[])
 {   
-    gscope = 0;
+    nlevel = 0;
     cur_index = 0;
     Reads = new list<ARR_Ast*>(); 
     Writes = new list<ARR_Ast*>();

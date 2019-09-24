@@ -67,6 +67,7 @@
     #include <stdio.h>
     #include <queue>
     #include <stack>
+    #include <map>
     using namespace std;
     extern "C" void yyerror(char *);
     extern FILE * yyin;
@@ -74,17 +75,44 @@
     extern int yylineno;
     int yyerror (const char *error )
     {
-        fprintf ( stderr, "\tError: %s detected at line %d\n", error, yylineno );
+        fprintf ( stderr, "\tError: %s ,detected at line %d\n", error, yylineno );
         exit ( EXIT_FAILURE );
     }
 
-    int gscope ;  // For Scopes 
+    int nlevel ;  // Nested Level 
     int cur_index;
     stack<FOR_Ast*> index_scope;
     list<ARR_Ast*>* Reads,*Writes;
     list<FOR_Ast*>* Fors;
+    map<string,pair<int,int> > forbounds;
+    map<string,pair<int,int> > stmt_forbounds;
+    map<string,int> arr_dims ; // For checking purposes
 
-#line 88 "parser.tab.c" /* yacc.c:339  */
+        string check_arr_index(string name,int cur_index){
+            if(forbounds.find(name) == forbounds.end()){ 
+                    return "Variable in array not found" ;
+                }else{
+                    pair<int,int> forb = stmt_forbounds[name];
+                    if(forb.first < cur_index){
+                        if(forb.second !=-1 && forb.second < cur_index){
+                            return "Variable in Array out of scope";
+                        }
+                    }
+                }
+                return "";
+        }
+
+        string check_arr_dim(string name,int cur_dim){
+            if(arr_dims.find(name) != arr_dims.end()){
+                if(arr_dims[name] != cur_dim){
+                    return "Array dimensions mismatch";
+                }
+            }
+            return "";
+        }
+
+
+#line 116 "parser.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -114,11 +142,11 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 22 "parser.y" /* yacc.c:355  */
+#line 50 "parser.y" /* yacc.c:355  */
 
     #include "headers.h"
 
-#line 122 "parser.tab.c" /* yacc.c:355  */
+#line 150 "parser.tab.c" /* yacc.c:355  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -145,7 +173,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 25 "parser.y" /* yacc.c:355  */
+#line 53 "parser.y" /* yacc.c:355  */
 
     string *    stringer;
     char        character;
@@ -159,7 +187,7 @@ union YYSTYPE
     list<Symbol_Table_Entry*>* STE_LIST;
 
 
-#line 163 "parser.tab.c" /* yacc.c:355  */
+#line 191 "parser.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -176,7 +204,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 180 "parser.tab.c" /* yacc.c:358  */
+#line 208 "parser.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -474,10 +502,10 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    68,    68,    72,    73,    74,    77,    78,    84,    85,
-      86,    87,    88,    92,    97,   100,   103,   112,   117,   129,
-     127,   164,   165,   169,   170,   171,   172,   173,   174,   175,
-     176
+       0,    96,    96,   100,   101,   102,   105,   106,   112,   117,
+     118,   119,   124,   128,   133,   136,   139,   151,   157,   169,
+     167,   210,   211,   215,   216,   217,   218,   219,   220,   221,
+     222
 };
 #endif
 
@@ -1286,129 +1314,141 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 68 "parser.y" /* yacc.c:1646  */
+#line 96 "parser.y" /* yacc.c:1646  */
     {
                 MAIN = (yyvsp[0].AST);
             }
-#line 1294 "parser.tab.c" /* yacc.c:1646  */
+#line 1322 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 72 "parser.y" /* yacc.c:1646  */
+#line 100 "parser.y" /* yacc.c:1646  */
     { (yyval.AST) = new Ast(); }
-#line 1300 "parser.tab.c" /* yacc.c:1646  */
+#line 1328 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 73 "parser.y" /* yacc.c:1646  */
+#line 101 "parser.y" /* yacc.c:1646  */
     {(yyval.AST) = (yyvsp[0].AST);}
-#line 1306 "parser.tab.c" /* yacc.c:1646  */
+#line 1334 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 74 "parser.y" /* yacc.c:1646  */
+#line 102 "parser.y" /* yacc.c:1646  */
     {(yyval.AST) = (yyvsp[0].AST);}
-#line 1312 "parser.tab.c" /* yacc.c:1646  */
+#line 1340 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 77 "parser.y" /* yacc.c:1646  */
+#line 105 "parser.y" /* yacc.c:1646  */
     {(yyval.AST)=(yyvsp[-1].AST);}
-#line 1318 "parser.tab.c" /* yacc.c:1646  */
+#line 1346 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 78 "parser.y" /* yacc.c:1646  */
+#line 106 "parser.y" /* yacc.c:1646  */
     {(yyval.AST)=new Ast();}
-#line 1324 "parser.tab.c" /* yacc.c:1646  */
+#line 1352 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 84 "parser.y" /* yacc.c:1646  */
-    { (yyval.ARR_INDEX_EQ_AST) = new ARR_EQ_Ast(*(yyvsp[0].stringer),(yyvsp[-2].integer));                   }
-#line 1330 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 9:
-#line 85 "parser.y" /* yacc.c:1646  */
-    { (yyvsp[-2].ARR_INDEX_EQ_AST)->merge((yyvsp[0].ARR_INDEX_EQ_AST)); (yyval.ARR_INDEX_EQ_AST)=(yyvsp[-2].ARR_INDEX_EQ_AST);    }
-#line 1336 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 10:
-#line 86 "parser.y" /* yacc.c:1646  */
-    { (yyvsp[0].ARR_INDEX_EQ_AST)->make_neg(false); (yyvsp[-2].ARR_INDEX_EQ_AST)->merge((yyvsp[0].ARR_INDEX_EQ_AST)); (yyval.ARR_INDEX_EQ_AST)=(yyvsp[-2].ARR_INDEX_EQ_AST);  }
-#line 1342 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 11:
-#line 87 "parser.y" /* yacc.c:1646  */
-    { (yyval.ARR_INDEX_EQ_AST) = new ARR_EQ_Ast(*(yyvsp[0].stringer),1);                   }
-#line 1348 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 12:
-#line 88 "parser.y" /* yacc.c:1646  */
-    { (yyval.ARR_INDEX_EQ_AST) = new ARR_EQ_Ast((yyvsp[0].integer));                      }
-#line 1354 "parser.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 13:
-#line 92 "parser.y" /* yacc.c:1646  */
-    {     cur_index++;
-                                        (yyvsp[-3].ARR_AST)->set_isSource(true); Writes->push_back((yyvsp[-3].ARR_AST)); (yyval.AST)= new Ast();
-                                  }
+#line 112 "parser.y" /* yacc.c:1646  */
+    { 
+                                    (yyval.ARR_INDEX_EQ_AST) = new ARR_EQ_Ast(*(yyvsp[0].stringer),(yyvsp[-2].integer));    
+                                    string err = check_arr_index(*(yyvsp[0].stringer),cur_index);                  
+                                    if(err != ""){ yyerror(err.c_str()); }               
+                             }
 #line 1362 "parser.tab.c" /* yacc.c:1646  */
     break;
 
-  case 14:
-#line 97 "parser.y" /* yacc.c:1646  */
-    { 
-                        (yyvsp[-2].ARR_AST)->set_isSource(false); Reads->push_back((yyvsp[-2].ARR_AST)); (yyval.ARR_AST) = new ARR_Ast();
-                    }
-#line 1370 "parser.tab.c" /* yacc.c:1646  */
+  case 9:
+#line 117 "parser.y" /* yacc.c:1646  */
+    { (yyvsp[-2].ARR_INDEX_EQ_AST)->merge((yyvsp[0].ARR_INDEX_EQ_AST)); (yyval.ARR_INDEX_EQ_AST)=(yyvsp[-2].ARR_INDEX_EQ_AST);    }
+#line 1368 "parser.tab.c" /* yacc.c:1646  */
     break;
 
-  case 15:
-#line 100 "parser.y" /* yacc.c:1646  */
-    { (yyvsp[0].ARR_AST)->set_isSource(false); Reads->push_back((yyvsp[0].ARR_AST)); (yyval.ARR_AST) = new ARR_Ast(); }
-#line 1376 "parser.tab.c" /* yacc.c:1646  */
+  case 10:
+#line 118 "parser.y" /* yacc.c:1646  */
+    { (yyvsp[0].ARR_INDEX_EQ_AST)->make_neg(false); (yyvsp[-2].ARR_INDEX_EQ_AST)->merge((yyvsp[0].ARR_INDEX_EQ_AST)); (yyval.ARR_INDEX_EQ_AST)=(yyvsp[-2].ARR_INDEX_EQ_AST);  }
+#line 1374 "parser.tab.c" /* yacc.c:1646  */
     break;
 
-  case 16:
-#line 103 "parser.y" /* yacc.c:1646  */
-    {  
-                                    (yyvsp[0].ARR_AST)->set_arr_name(*(yyvsp[-3].stringer));
-                                    (yyvsp[0].ARR_AST)->add_arr_dim(1);
-                                    (yyvsp[0].ARR_AST)->add_eqs((yyvsp[-1].ARR_INDEX_EQ_AST));
-                                    (yyvsp[0].ARR_AST)->set_nested_level(gscope);
-                                    (yyval.ARR_AST) = (yyvsp[0].ARR_AST);
+  case 11:
+#line 119 "parser.y" /* yacc.c:1646  */
+    {     
+                                    (yyval.ARR_INDEX_EQ_AST) = new ARR_EQ_Ast(*(yyvsp[0].stringer),1); 
+                                    string err = check_arr_index(*(yyvsp[0].stringer),cur_index);                  
+                                    if(err != ""){ yyerror(err.c_str()); }
                                 }
-#line 1388 "parser.tab.c" /* yacc.c:1646  */
+#line 1384 "parser.tab.c" /* yacc.c:1646  */
     break;
 
-  case 17:
-#line 112 "parser.y" /* yacc.c:1646  */
-    {      
-                                (yyvsp[0].ARR_AST)->add_eqs((yyvsp[-1].ARR_INDEX_EQ_AST)); 
-                                (yyvsp[0].ARR_AST)->add_arr_dim(1);
-                                (yyval.ARR_AST) = (yyvsp[0].ARR_AST);
-                         }
+  case 12:
+#line 124 "parser.y" /* yacc.c:1646  */
+    { (yyval.ARR_INDEX_EQ_AST) = new ARR_EQ_Ast((yyvsp[0].integer));                      }
+#line 1390 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 13:
+#line 128 "parser.y" /* yacc.c:1646  */
+    {     cur_index++;
+                                        (yyvsp[-3].ARR_AST)->set_isSource(true); Writes->push_back((yyvsp[-3].ARR_AST)); (yyval.AST)= new Ast();
+                                  }
 #line 1398 "parser.tab.c" /* yacc.c:1646  */
     break;
 
+  case 14:
+#line 133 "parser.y" /* yacc.c:1646  */
+    { 
+                        (yyvsp[-2].ARR_AST)->set_isSource(false); Reads->push_back((yyvsp[-2].ARR_AST)); (yyval.ARR_AST) = new ARR_Ast();
+                    }
+#line 1406 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 136 "parser.y" /* yacc.c:1646  */
+    { (yyvsp[0].ARR_AST)->set_isSource(false); Reads->push_back((yyvsp[0].ARR_AST)); (yyval.ARR_AST) = new ARR_Ast(); }
+#line 1412 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 16:
+#line 139 "parser.y" /* yacc.c:1646  */
+    {  
+                                    (yyvsp[0].ARR_AST)->set_arr_name(*(yyvsp[-3].stringer));
+                                    (yyvsp[0].ARR_AST)->add_arr_dim(1);
+                                    string err = check_arr_dim(*(yyvsp[-3].stringer),(yyvsp[0].ARR_AST)->get_arr_dim());                  
+                                    if(err != ""){ yyerror(err.c_str()); } 
+                                    arr_dims[*(yyvsp[-3].stringer)] = (yyvsp[0].ARR_AST)->get_arr_dim();
+                                    (yyvsp[0].ARR_AST)->add_eqs((yyvsp[-1].ARR_INDEX_EQ_AST));
+                                    (yyvsp[0].ARR_AST)->set_nested_level(nlevel);
+                                    (yyval.ARR_AST) = (yyvsp[0].ARR_AST);
+                                }
+#line 1427 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 17:
+#line 151 "parser.y" /* yacc.c:1646  */
+    {      
+                                (yyvsp[0].ARR_AST)->add_eqs((yyvsp[-1].ARR_INDEX_EQ_AST)); 
+                                (yyvsp[0].ARR_AST)->add_arr_dim(1);
+                                
+                                (yyval.ARR_AST) = (yyvsp[0].ARR_AST);
+                         }
+#line 1438 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
   case 18:
-#line 117 "parser.y" /* yacc.c:1646  */
+#line 157 "parser.y" /* yacc.c:1646  */
     { 
                         ARR_Ast * arr = new ARR_Ast(); 
                         arr->set_index(cur_index);
                         (yyval.ARR_AST) = arr;
                     }
-#line 1408 "parser.tab.c" /* yacc.c:1646  */
+#line 1448 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 129 "parser.y" /* yacc.c:1646  */
+#line 169 "parser.y" /* yacc.c:1646  */
     {   string name = *(yyvsp[-7].stringer);
         int i_start = (yyvsp[-5].integer), i_end = (yyvsp[-3].COND_AST)->get_value();
 
@@ -1418,16 +1458,21 @@ yyreduce:
         forloop->set_i_end(i_end);
         forloop->set_Cond((yyvsp[-3].COND_AST));
         forloop->set_Incre((yyvsp[-1].INC_AST));
-        forloop->set_index(gscope);
-
+        forloop->set_nested_level(nlevel);
+        forloop->set_ind_start(cur_index);    
+        forloop->set_index(cur_index); 
+        
         string err = forloop->check_ast();       // Checking the For Ast 
         if(err != "") { yyerror(err.c_str()); }
-        // forloop->print(gscope); // Printing 
+        if(forbounds.find(name) != forbounds.end()){ 
+            yyerror("iterator variables must be different");
+        }else {
+            forbounds[name] = make_pair(i_start,i_end);
+            stmt_forbounds[name] = make_pair(cur_index,-1);                        
+        }
 
-        // TODO: Change the increment Conditions
-        forloop->set_ind_start(cur_index);     
         
-        gscope++;
+        nlevel++;
         cur_index++;
 
         Fors->push_back(forloop); // Adding to the For list
@@ -1435,83 +1480,84 @@ yyreduce:
 
         // $$ = new Ast();   //Hack
     }
-#line 1439 "parser.tab.c" /* yacc.c:1646  */
+#line 1484 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 155 "parser.y" /* yacc.c:1646  */
+#line 200 "parser.y" /* yacc.c:1646  */
     {              FOR_Ast * forloop = index_scope.top();
                         forloop->set_ind_end(cur_index);
-                        gscope--;
+                        stmt_forbounds[forloop->get_iter_name()] = make_pair(forloop->get_ind_start(), forloop->get_ind_end());                        
+                        nlevel--;
                         cur_index++;
                         index_scope.pop();
                         (yyval.AST) = new FOR_Ast();
                     }
-#line 1451 "parser.tab.c" /* yacc.c:1646  */
+#line 1497 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 164 "parser.y" /* yacc.c:1646  */
+#line 210 "parser.y" /* yacc.c:1646  */
     { (yyval.INC_AST) = new Incre_Ast(*(yyvsp[-2].stringer),true); }
-#line 1457 "parser.tab.c" /* yacc.c:1646  */
+#line 1503 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 165 "parser.y" /* yacc.c:1646  */
+#line 211 "parser.y" /* yacc.c:1646  */
     { (yyval.INC_AST) = new Incre_Ast(*(yyvsp[-2].stringer),false); }
-#line 1463 "parser.tab.c" /* yacc.c:1646  */
+#line 1509 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 169 "parser.y" /* yacc.c:1646  */
+#line 215 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = (yyvsp[-1].COND_AST); }
-#line 1469 "parser.tab.c" /* yacc.c:1646  */
+#line 1515 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 170 "parser.y" /* yacc.c:1646  */
+#line 216 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = new Cond_Ast(le,*(yyvsp[-2].stringer),(yyvsp[0].integer)); }
-#line 1475 "parser.tab.c" /* yacc.c:1646  */
+#line 1521 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 171 "parser.y" /* yacc.c:1646  */
+#line 217 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = new Cond_Ast(leq,*(yyvsp[-2].stringer),(yyvsp[0].integer)); }
-#line 1481 "parser.tab.c" /* yacc.c:1646  */
+#line 1527 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 172 "parser.y" /* yacc.c:1646  */
+#line 218 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = new Cond_Ast(gt,*(yyvsp[-2].stringer),(yyvsp[0].integer)); }
-#line 1487 "parser.tab.c" /* yacc.c:1646  */
+#line 1533 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 173 "parser.y" /* yacc.c:1646  */
+#line 219 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = new Cond_Ast(gtq,*(yyvsp[-2].stringer),(yyvsp[0].integer)); }
-#line 1493 "parser.tab.c" /* yacc.c:1646  */
+#line 1539 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 174 "parser.y" /* yacc.c:1646  */
+#line 220 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = new Cond_Ast(eq,*(yyvsp[-2].stringer),(yyvsp[0].integer)); }
-#line 1499 "parser.tab.c" /* yacc.c:1646  */
+#line 1545 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 175 "parser.y" /* yacc.c:1646  */
+#line 221 "parser.y" /* yacc.c:1646  */
     { (yyval.COND_AST) = new Cond_Ast(neq,*(yyvsp[-2].stringer),(yyvsp[0].integer)); }
-#line 1505 "parser.tab.c" /* yacc.c:1646  */
+#line 1551 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 176 "parser.y" /* yacc.c:1646  */
+#line 222 "parser.y" /* yacc.c:1646  */
     { (yyvsp[0].COND_AST)->negate(); (yyval.COND_AST)=(yyvsp[0].COND_AST); }
-#line 1511 "parser.tab.c" /* yacc.c:1646  */
+#line 1557 "parser.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1515 "parser.tab.c" /* yacc.c:1646  */
+#line 1561 "parser.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1739,7 +1785,8 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 190 "parser.y" /* yacc.c:1906  */
+#line 226 "parser.y" /* yacc.c:1906  */
+
 
 void print_reads(){
     // list<ARR_Ast*> Reads
@@ -1768,7 +1815,7 @@ void print_fors(){
 
 int main(int argc,char* argv[])
 {   
-    gscope = 0;
+    nlevel = 0;
     cur_index = 0;
     Reads = new list<ARR_Ast*>(); 
     Writes = new list<ARR_Ast*>();

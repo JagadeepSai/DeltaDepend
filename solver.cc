@@ -7,14 +7,13 @@
 
 extern list<ARR_Ast*>* Reads,*Writes;
 extern list<FOR_Ast*>* Fors;
-
-bool solve_exact(){
-
-}
+map<int,list<string>*> fornests;
 
 
-void ddg(){
-    list<string>* allnames = new list<string>();
+list<string>* allnames;
+// list<ARR_Ast*>* allarrays;
+void init(){
+    // Get all names;
     list<string>* allnames_reads = get_allnames(Reads);
     list<string>* allnames_writes = get_allnames(Writes);
     for (auto const& i : *allnames_writes) {
@@ -27,6 +26,19 @@ void ddg(){
     for (auto const& i : *allnames) {
         allnames->push_back(i);
     }
+
+    // 
+
+}
+bool solve_exact(){
+
+}
+
+
+void ddg(){
+    init();
+    // list<string>* allnames = new list<string>();
+    
     
 }
 

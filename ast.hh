@@ -40,6 +40,8 @@ class FOR_Ast: public Ast{
 	Ast * body;
 	Cond_Ast * cond;
 	Incre_Ast * Incre;
+	int nested_level;
+
 	public:
 	FOR_Ast();
 	~FOR_Ast();
@@ -53,6 +55,9 @@ class FOR_Ast: public Ast{
 	int get_ind_start();
 	int get_ind_end();
 
+	void set_nested_level(int n);
+	int get_nested_level();
+	
 	void set_iter_name(string s);
 	string get_iter_name();
 

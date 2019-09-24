@@ -1,3 +1,4 @@
+// NOT NEEDED NOW
 #ifndef SYMBOL_HH
 #define SYMBOL_HH
 
