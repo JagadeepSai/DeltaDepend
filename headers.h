@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "solver.cc"
 #include "ast.hh"
 // #include "program.hh"
 // #include "alltokens.hh"
