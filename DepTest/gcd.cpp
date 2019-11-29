@@ -4,8 +4,17 @@
 #include <map> 
 #include "gcd.h"
 
-
 using namespace std;
+//Input coefMap:i1,i2,i3....,c[i1*x+i2*y+i3*z=c] 
+//returns true or false for dependence
+bool ExtendedGcd(std::map<string, int> coefMap);
+
+
+
+//Input coefMap:i1,i2,i3....,c[i1*x+i2*y+i3*z=c] boundMap: lb1,ub1,lb2,ub2...
+//return vector 1st record:source, 2nd sink, 3rd source, 4th sink and so on...
+std::vector<int> Exhaustive(map<string, int> coefMap, map<string, int> boundMap);
+
 int getGCD(int a, int b) //2 variables a,b of LDE
 { 
     if (b == 0) {
@@ -50,7 +59,111 @@ bool GcdTestMulI(std::vector<std::vector<int>> v){
         return dependent;
 }
 
+//************************************************************************************************
+//EXTENDED GCD TEST
+//************************************************************************************************
 
+bool ExtendedGcd(map<string, int> coefMap){
+  int min=0,max=0;
+  bool dependent=true;
+  int coefSize=coefMap.size() -1;
+  //cout<<"coef size: "<<coefSize<<endl;
+  std::vector<int> v;
+
+  switch (coefSize)
+  {
+    case 2: 
+     {
+      v.push_back(coefMap["i1"]);
+      v.push_back(coefMap["i2"]);
+      v.push_back(coefMap["c"]);
+      dependent=GcdTestV(v);
+      break;
+    }
+    case 4: {
+      int a=coefMap["i1"];
+      int b=coefMap["i2"];
+      int c=coefMap["i3"];
+      int d=coefMap["i4"];
+      int e=coefMap["c"];
+
+      int gc1=getGCD(a,b);
+      int gc2=getGCD(c,d);
+
+      dependent=GcdTest(gc1,gc2,e);
+      break;
+      }
+
+   case 6: {
+      min=0,max=0;
+      int a=coefMap["i1"];
+      int b=coefMap["i2"];
+      int c=coefMap["i3"];
+      int d=coefMap["i4"];
+      int e=coefMap["i5"];
+      int f=coefMap["i6"];
+      int g=coefMap["c"];
+
+
+      int gc1=getGCD(a,b);
+      int gc2=getGCD(c,d);
+      int gc3=getGCD(e,f);
+      gc2=getGCD(gc2,gc3);
+      dependent=GcdTest(gc1,gc2,g);
+      break;}
+
+   case 8: {
+      min=0,max=0;
+      int a=coefMap["i1"];
+      int b=coefMap["i2"];
+      int c=coefMap["i3"];
+      int d=coefMap["i4"];
+      int e=coefMap["i5"];
+      int f=coefMap["i6"];
+      int g=coefMap["i7"];
+      int h=coefMap["i8"];
+      int i=coefMap["c"];
+
+      int gc1=getGCD(a,b);
+      int gc2=getGCD(c,d);
+      int gc3=getGCD(e,f);
+      int gc4=getGCD(g,h);
+      gc1=getGCD(gc1,gc2);
+      gc2=getGCD(gc3,gc4);
+      dependent=GcdTest(gc1,gc2,i);
+
+      break;}
+  
+  }
+  return dependent;
+}
+//************************************************************************************************
+//EXHAUSTIVE TEST for LDE
+//************************************************************************************************
+
+std::vector<int> Exhaustive(map<string, int> coefMap, map<string, int> boundMap){
+std::vector<int> v;
+  int min=0,max=0;
+  bool dependent=true;
+  int a=coefMap["i1"];
+  int b=coefMap["i2"];
+  int c=coefMap["c"];
+  int lb1=boundMap["lb1"];
+  int ub1=boundMap["ub1"];
+
+  for(int i=lb1;i<=ub1;i++){
+    for(int j=lb1;j<=ub1;j++){
+        if(a*i+b*j==c){
+        v.push_back(i);
+        v.push_back(j);
+        }
+
+    }
+    
+    }
+
+return v;
+}
 //************************************************************************************************
 //EXACT TEST
 //************************************************************************************************
@@ -262,5 +375,62 @@ vector<vector<int> > vect{ { 2, 2, 3 },
   cout<<"backward:   "<<deps["backward"]<<endl;
   cout<<"forward:   "<<deps["forward"]<<endl;
   cout<<"loopindependent:   "<<deps["loopindependent"]<<endl;
+
+
+
+
+
+    //NEW CODE TEST
+map<string, int> coef;
+
+coef.insert(make_pair("i1", 5));
+coef.insert(make_pair("i2", 3));
+coef.insert(make_pair("c", 120));
+
+dependent=false;
+dependent=ExtendedGcd(coef);
+cout<<"BEXTTrue:   "<<dependent<<endl;
+
+
+
+///4 variable lde
+coef.insert(make_pair("i3", 4));
+coef.insert(make_pair("i4", 60));
+
+dependent=true;
+dependent=ExtendedGcd(coef);
+cout<<"BEXTTrue:   "<<dependent<<endl;
+
+///6 variable lde
+coef.insert(make_pair("i5", 4));
+coef.insert(make_pair("i6", 60));
+
+dependent=false;
+dependent=ExtendedGcd(coef);
+cout<<"BEXTTrue:   "<<dependent<<endl;
+
+
+
+///8 variable lde
+coef.insert(make_pair("i7", 4));
+coef.insert(make_pair("i8", 60));
+
+dependent=false;
+dependent=ExtendedGcd(coef);
+cout<<"BEXTTrue:   "<<dependent<<endl;
+
+map<string, int> boundMap;
+boundMap.insert(make_pair("lb1", 0));
+boundMap.insert(make_pair("ub1", 100));
+
+
+// v=ExactSourceSink(5,3,120,0,100);
+ v=Exhaustive(coef,boundMap);
+ for(int i=0;i<18;i++){
+ cout<<v[i]<<"and"<<v[i+1]<<endl;
+ i++;
+ }
+
+
 
   }
