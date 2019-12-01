@@ -10,7 +10,10 @@ using namespace std;
 //Input coefMap:i1,i2,i3....,c[i1*x+i2*y+i3*z=c] 
 //returns true or false for dependence
 bool ExtendedGcd(std::map<string, int> coefMap);
-
+//returns true if dependent as per banerjee test else returns false
+bool BanerjeeTest(int a, int b, int c, int LB, int UB);
+bool getDependence(int min, int max, int c);
+map<string, int> getMinMax(int a, int b, int LB, int UB);
 
 
 //Input coefMap:i1,i2,i3....,c[i1*x+i2*y+i3*z=c] boundMap: lb1,ub1,lb2,ub2...
@@ -336,6 +339,236 @@ bool isDependentExact(int a, int b, int c, int lb, int ub){
 
 
 
+//MERGED Banerjee HERE
+
+bool BanerjeeTest(int a, int b, int c, int LB, int UB){
+    int min=0,max=0;
+    bool dependent=true;
+    if(a>=0 && b>=0){
+      min=LB*a +LB*b;
+      max=UB*a+UB*b;
+
+    }
+    else if(a>=0 && b<0){
+      min=LB*a +UB*b;
+      max=UB*a+LB*b;
+    }
+    else if(a<0 && b>=0 ){
+      min=UB*a +LB*b;
+      max=LB*a+UB*b;
+
+    }
+    else if(a<0 && b<0){
+      min=UB*a +UB*b;
+      max=LB*a+LB*b;
+
+    }
+    else{
+      //if some error, returning imprecise, but sound value
+      return true;
+    }
+      //cout<<"min:   "<<min<<"max: "<<max<<endl;
+    if(min <= c && c<= max){
+      dependent=true;
+    }
+    else{
+      dependent=false;
+    }
+    return dependent;
+}
+/* if don't want to with int args, pass vector in the following order:
+a,    b,    c,    lb,     ub
+v[0] v[1]   v[2]  v[3]    v[4]
+*/
+bool BanerjeeTestV(std::vector<int> v){
+  return BanerjeeTest(v[0],v[1],v[2],v[3],v[4]);
+
+}
+
+//Input coefMap:i1,i2,i3....,c[i1*x+i2*y+i3*z=c] boundMap: lb1,ub1,lb2,ub2...
+//returns true or false for dependence
+bool ExtendedBanerjee(map<string, int> coefMap, map<string, int> boundMap){
+  int min=0,max=0;
+  bool dependent=true;
+  int coefSize=coefMap.size() -1;
+  //cout<<"coef size: "<<coefSize<<endl;
+  int boundSize=boundMap.size();
+  std::vector<int> v;
+
+  switch (coefSize)
+  {
+    case 2:
+     {
+      v.push_back(coefMap["i1"]);
+      v.push_back(coefMap["i2"]);
+      v.push_back(coefMap["c"]);
+      v.push_back(boundMap["lb1"]);
+      v.push_back(boundMap["ub1"]);
+      dependent=BanerjeeTestV(v);
+      break;
+    }
+    case 4: {
+      min=0,max=0;
+      int a=coefMap["i1"];
+      int b=coefMap["i2"];
+      int c=coefMap["i3"];
+      int d=coefMap["i4"];
+      int e=coefMap["c"];
+      int lb1=boundMap["lb1"];
+      int lb2=boundMap["lb2"];
+      int ub1=boundMap["ub1"];
+      int ub2=boundMap["ub2"];
+
+      map<string, int> minMaxMap;
+      minMaxMap=getMinMax(a,b,lb1,ub1);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+      //cout<<"min:   "<<min<<"max: "<<max<<endl;
+
+      minMaxMap=getMinMax(c,d,lb2,ub2);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+      //cout<<"min:   "<<min<<"max: "<<max<<endl;
+      /*
+      std::vector<int> v;
+      v=getMinMax(a,b,lb1,ub1);
+      min=min+v[0];
+      max=max+v[1];
+
+      v=getMinMax(c,d,lb2,ub2);
+      min=min+v[0];
+      max=max+v[1];
+    */
+      dependent=getDependence(min,max,e);
+      break;
+      }
+
+   case 6: {
+      min=0,max=0;
+      int a=coefMap["i1"];
+      int b=coefMap["i2"];
+      int c=coefMap["i3"];
+      int d=coefMap["i4"];
+      int e=coefMap["i5"];
+      int f=coefMap["i6"];
+      int g=coefMap["c"];
+
+      int lb1=boundMap["lb1"];
+      int lb2=boundMap["lb2"];
+      int lb3=boundMap["lb3"];
+      int ub1=boundMap["ub1"];
+      int ub2=boundMap["ub2"];
+      int ub3=boundMap["ub3"];
+      map<string, int> minMaxMap;
+      minMaxMap=getMinMax(a,b,lb1,ub1);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      minMaxMap=getMinMax(c,d,lb2,ub2);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      minMaxMap=getMinMax(e,f,lb3,ub3);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      //cout<<"min:   "<<min<<"max: "<<max<<endl;
+
+      dependent=getDependence(min,max,g);
+      break;}
+
+   case 8: {
+      min=0,max=0;
+      int a=coefMap["i1"];
+      int b=coefMap["i2"];
+      int c=coefMap["i3"];
+      int d=coefMap["i4"];
+      int e=coefMap["i5"];
+      int f=coefMap["i6"];
+      int g=coefMap["i7"];
+      int h=coefMap["i8"];
+      int i=coefMap["c"];
+
+      int lb1=boundMap["lb1"];
+      int lb2=boundMap["lb2"];
+      int lb3=boundMap["lb3"];
+      int lb4=boundMap["lb4"];
+      int ub1=boundMap["ub1"];
+      int ub2=boundMap["ub2"];
+      int ub3=boundMap["ub3"];
+      int ub4=boundMap["ub4"];
+      map<string, int> minMaxMap;
+      minMaxMap=getMinMax(a,b,lb1,ub1);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      minMaxMap=getMinMax(c,d,lb2,ub2);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      minMaxMap=getMinMax(e,f,lb3,ub3);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      minMaxMap=getMinMax(g,h,lb4,ub4);
+      min=min+minMaxMap["min"];
+      max=max+minMaxMap["max"];
+
+      //cout<<"min:   "<<min<<"max: "<<max<<endl;
+
+      dependent=getDependence(min,max,i);
+      break;}
+
+  }
+  return dependent;
+
+
+}
+//returns minimum and maximum values as a map for extended banerjee
+//this is called iteratively for each pair of variables in LDE with their lb and ub
+//bool getDependence(int min, int max, int c)
+map<string, int> getMinMax(int a, int b, int LB, int UB){
+  int min=0,max=0;
+  map<string, int> minMaxMap;
+   if(a>=0 && b>=0){
+      min=LB*a +LB*b;
+      max=UB*a+UB*b;
+
+    }
+    else if(a>=0 && b<0){
+      min=LB*a +UB*b;
+      max=UB*a+LB*b;
+    }
+    else if(a<0 && b>=0 ){
+      min=UB*a +LB*b;
+      max=LB*a+UB*b;
+
+    }
+    else if(a<0 && b<0){
+      min=UB*a +UB*b;
+      max=LB*a+LB*b;
+
+    }
+    minMaxMap.insert(make_pair("min", min));
+    minMaxMap.insert(make_pair("max", max));
+
+    return minMaxMap;
+
+}
+
+bool getDependence(int min, int max, int c){
+  bool dependent=true;
+  if(min <= c && c<= max){
+      dependent=true;
+    }
+    else{
+      dependent=false;
+    }
+    return dependent;
+}
+
+
+
 int main(){
     int input=0;
        
@@ -344,8 +577,9 @@ int main(){
           cout<<"Enter 1 for Exact Test for direction vector"<<endl;
           cout<<"Enter 2 for Exact Test to get source sink pairs"<<endl;
           cout<<"Enter 3 for Exhaustive Test to get source sink pairs"<<endl;
-          cout<<"Enter 4 for GCD Test"<<endl;
-          cout<<"Enter 5 to exit"<<endl;
+          cout<<"Enter 4 for GCD and Extended GCD Test"<<endl;
+          cout<<"Enter 5 for Banerjee and Extended Banerjee Test"<<endl;
+          cout<<"Enter 6 to exit"<<endl;
           cin>>input;
           cin.ignore();
     switch(input){
@@ -464,7 +698,91 @@ int main(){
             break;
 
         }
-        case 5:{
+            case 5:{
+            std::string line;
+            int number;
+            vector<int> v;
+            cout << "Enter coefficient and bounds of LDE separated by spaces: i1 i2 i3 i4 i5.....c lb1 ub1 lb2 ub2....where lb is lower bound and ub is upper bound"<<endl;
+            getline(std::cin, line);
+            istringstream stream(line);
+            while (stream >> number)
+                v.push_back(number);          
+            map<string,int> coef,bound;
+            int size=(v.size()-1)/2;
+            switch (size){
+                case 2:{
+                     coef.insert(make_pair("i1", v[0]));
+                     coef.insert(make_pair("i2", v[1]));
+                     coef.insert(make_pair("c", v[2]));
+
+                     bound.insert(make_pair("lb1", v[3]));
+                     bound.insert(make_pair("ub1", v[4]));
+
+                    break;
+                }
+                case 4:{
+                    coef.insert(make_pair("i1", v[0]));
+                    coef.insert(make_pair("i2", v[1]));
+                    coef.insert(make_pair("i3", v[2]));
+                    coef.insert(make_pair("i4", v[3]));
+                    coef.insert(make_pair("c", v[4]));
+
+                    bound.insert(make_pair("lb1", v[5]));
+                    bound.insert(make_pair("ub1", v[6]));
+                    bound.insert(make_pair("lb2", v[7]));
+                    bound.insert(make_pair("ub2", v[8]));
+                    
+                    break;
+                }
+                case 6:{
+                    coef.insert(make_pair("i1", v[0]));
+                    coef.insert(make_pair("i2", v[1]));
+                    coef.insert(make_pair("i3", v[2]));
+                    coef.insert(make_pair("i4", v[3]));
+                    coef.insert(make_pair("i5", v[4]));
+                    coef.insert(make_pair("i6", v[5]));
+                    coef.insert(make_pair("c", v[6]));
+
+                    bound.insert(make_pair("lb1", v[7]));
+                    bound.insert(make_pair("ub1", v[8]));
+                    bound.insert(make_pair("lb2", v[9]));
+                    bound.insert(make_pair("ub2", v[10]));
+                    bound.insert(make_pair("lb3", v[11]));
+                    bound.insert(make_pair("ub3", v[12]));
+
+                    break;
+                }
+                case 8:{
+                    coef.insert(make_pair("i1", v[0]));
+                    coef.insert(make_pair("i2", v[1]));
+                    coef.insert(make_pair("i3", v[2]));
+                    coef.insert(make_pair("i4", v[3]));
+                    coef.insert(make_pair("i5", v[4]));
+                    coef.insert(make_pair("i6", v[5]));
+                    coef.insert(make_pair("i7", v[6]));
+                    coef.insert(make_pair("i8", v[7]));
+                    coef.insert(make_pair("c", v[8]));
+
+                    bound.insert(make_pair("lb1", v[9]));
+                    bound.insert(make_pair("ub1", v[10]));
+                    bound.insert(make_pair("lb2", v[11]));
+                    bound.insert(make_pair("ub2", v[12]));
+                    bound.insert(make_pair("lb3", v[13]));
+                    bound.insert(make_pair("ub3", v[14]));
+                    bound.insert(make_pair("lb4", v[15]));
+                    bound.insert(make_pair("ub4", v[16]));
+                    break;
+                }
+
+            }
+            bool dep=ExtendedBanerjee(coef,bound);
+            cout<<"Depenedence: "<<dep<<endl;
+            
+
+            break;
+
+        }
+        case 6:{
                 cout<<"Bye bye"<<endl;
                 exit(0);
                 break;
