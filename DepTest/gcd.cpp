@@ -1,7 +1,9 @@
 #include <iostream> 
+#include <stdlib.h> 
 #include <string>
 #include <vector> 
 #include <map> 
+#include<sstream>
 #include "gcd.h"
 
 using namespace std;
@@ -164,6 +166,7 @@ std::vector<int> v;
 
 return v;
 }
+
 //************************************************************************************************
 //EXACT TEST
 //************************************************************************************************
@@ -332,7 +335,149 @@ bool isDependentExact(int a, int b, int c, int lb, int ub){
 }
 
 
+
 int main(){
+    int input=0;
+       
+    while(1){
+          cout<<"Choose one of the options:"<<endl;
+          cout<<"Enter 1 for Exact Test for direction vector"<<endl;
+          cout<<"Enter 2 for Exact Test to get source sink pairs"<<endl;
+          cout<<"Enter 3 for Exhaustive Test to get source sink pairs"<<endl;
+          cout<<"Enter 4 for GCD Test"<<endl;
+          cout<<"Enter 5 to exit"<<endl;
+          cin>>input;
+          cin.ignore();
+    switch(input){
+        case 1:{
+            std::string line;
+            int number;
+            vector<int> v;
+            cout << "Enter coefficient of LDE separated by spaces: a b c lb ub"<<endl;
+            getline(std::cin, line);
+            istringstream stream(line);
+            while (stream >> number)
+                v.push_back(number);
+            map<string, string> deps=ExactDirectionVector(v[0],v[1],v[2],v[3],v[4]);
+            cout<<"backward:    "<<deps["backward"]<<endl;
+            cout<<"forward:      "<<deps["forward"]<<endl;
+            cout<<"loopindependent:   "<<deps["loopindependent"]<<endl;            
+            break;    
+        }
+        case 2:{
+            std::string line;
+            int number;
+            vector<int> v;
+            cout << "Enter coefficient of LDE separated by spaces: a b c lb ub"<<endl;
+            getline(std::cin, line);
+            istringstream stream(line);
+            while (stream >> number)
+                v.push_back(number);
+            std::vector<std::vector<int>> xv=ExactSourceSink(v[0],v[1],v[2],v[3],v[4]);
+           for (int i = 0; i < xv.size(); i++) { 
+            cout<<"source:  " << xv[i][0]<<" and Sink:   "<<xv[i][1]<<endl;
+        }
+            break;
+        }
+        case 3:{
+            std::string line;
+            int number;
+            vector<int> v;
+            cout << "Enter coefficient of LDE separated by spaces for Exhaustive Test: a b c lb ub"<<endl;
+            getline(std::cin, line);
+            istringstream stream(line);
+            while (stream >> number)
+                v.push_back(number);
+            map<string,int> coef;
+            map<string,int> boundMap;
+            //cout<<v[0]<<" "<<v[1]<<" "<<v[2]<<" "<<v[3]<<" "<<v[4]<<" "<<endl;
+            coef.insert(make_pair("i1", v[0]));
+            coef.insert(make_pair("i2", v[1]));
+            coef.insert(make_pair("c", v[2]));
+            boundMap.insert(make_pair("lb1", v[3]));
+            boundMap.insert(make_pair("ub1", v[4]));
+            std::vector<int> xv=Exhaustive(coef,boundMap);
+            cout << "Running exhaustive"<<endl;
+            
+            for (int i = 0; i < xv.size(); i++) { 
+            cout<<"source:  " << xv[i]<<" and Sink:   "<<xv[i+1]<<endl;
+            i++;
+            }
+            break;
+        }
+        case 4:{
+            std::string line;
+            int number;
+            vector<int> v;
+            cout << "Enter coefficient of LDE separated by spaces: i1 i2 i3 i4 i5.....c"<<endl;
+            getline(std::cin, line);
+            istringstream stream(line);
+            while (stream >> number)
+                v.push_back(number);          
+            map<string,int> coef;
+            int size=v.size()-1;
+            switch (size){
+                case 2:{
+                     coef.insert(make_pair("i1", v[0]));
+                     coef.insert(make_pair("i2", v[1]));
+                     coef.insert(make_pair("c", v[2]));
+                    break;
+                }
+                case 4:{
+                    coef.insert(make_pair("i1", v[0]));
+                    coef.insert(make_pair("i2", v[1]));
+                    coef.insert(make_pair("i3", v[2]));
+                    coef.insert(make_pair("i4", v[3]));
+                    coef.insert(make_pair("c", v[4]));
+                    
+                    break;
+                }
+                case 6:{
+                    coef.insert(make_pair("i1", v[0]));
+                    coef.insert(make_pair("i2", v[1]));
+                    coef.insert(make_pair("i3", v[2]));
+                    coef.insert(make_pair("i4", v[3]));
+                    coef.insert(make_pair("i5", v[4]));
+                    coef.insert(make_pair("i6", v[5]));
+                    coef.insert(make_pair("c", v[6]));
+                    
+                    break;
+                }
+                case 8:{
+                    coef.insert(make_pair("i1", v[0]));
+                    coef.insert(make_pair("i2", v[1]));
+                    coef.insert(make_pair("i3", v[2]));
+                    coef.insert(make_pair("i4", v[3]));
+                    coef.insert(make_pair("i5", v[4]));
+                    coef.insert(make_pair("i6", v[5]));
+                    coef.insert(make_pair("i7", v[6]));
+                    coef.insert(make_pair("i8", v[7]));
+                    coef.insert(make_pair("c", v[8]));
+                    break;
+                }
+
+            }
+            bool dep=ExtendedGcd(coef);
+            cout<<"Depenedence: "<<dep<<endl;
+            
+
+            break;
+
+        }
+        case 5:{
+                cout<<"Bye bye"<<endl;
+                exit(0);
+                break;
+        }
+    }
+
+
+
+
+    }
+
+
+    /*
 vector<vector<int> > vect{ { 2, 2, 3 }, 
                                { 4, 5, 6 }, 
                                { 7, 8, 9 } };
@@ -431,6 +576,6 @@ boundMap.insert(make_pair("ub1", 100));
  i++;
  }
 
-
+*/
 
   }
